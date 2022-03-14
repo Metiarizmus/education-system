@@ -46,30 +46,25 @@ public class User extends BaseModel {
     @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
     private Set<Organization> org;
 
-    @OneToMany(mappedBy = "user")
+    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
     private Set<Course> courses;
 
     private boolean isInvite = false;
 
+    @OneToMany(mappedBy = "user")
+    private Set<Task> tasks;
+
     public User(String firstName, String lastName, String email, String password, String phoneNumber) {
-
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-
-        dateRegistr = formatter.format(calendar.getTime());
-
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
+        dateRegistr = dateCreated();
     }
 
     public User() {
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-
-        dateRegistr = formatter.format(calendar.getTime());
+        dateRegistr = dateCreated();
     }
 
     @JsonIgnore
@@ -96,5 +91,21 @@ public class User extends BaseModel {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", dateRegistr='" + dateRegistr + '\'' +
+                ", roles=" + roles +
+                ", org=" + org +
+                ", courses=" + courses +
+                ", isInvite=" + isInvite +
+                '}';
     }
 }

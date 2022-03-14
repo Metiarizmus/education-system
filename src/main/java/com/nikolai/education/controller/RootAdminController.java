@@ -18,15 +18,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.security.Principal;
 import java.text.ParseException;
 import java.util.Collections;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/org")
+@RequestMapping("/api/org/rootAdmin")
+@PreAuthorize("hasAuthority('ROLE_ROOT_ADMIN')")
 public class RootAdminController {
 
     private final OrgService orgService;
@@ -36,16 +38,6 @@ public class RootAdminController {
     private final UserRepo userRepo;
     private final OrgRepo orgRepo;
 
-    @PostMapping("/createOrg")
-    public ResponseEntity<?> createOrg(@Valid @RequestBody OrgRequest orgRequest, Principal principal) {
-        Organization organization = new Organization(orgRequest.getName(), orgRequest.getDescription(), orgRequest.getStatus());
-
-        OrgDTO org = orgService.createOrg(organization, principal);
-
-        return new ResponseEntity<>(org, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasAuthority('ROLE_ROOT_ADMIN')")
     @PostMapping("/invite")
     public ResponseEntity<?> inviteAdminOrManager(@Valid @RequestBody InviteRequest inviteRequest, Principal principal) {
         User sender = userRepo.findByEmail(principal.getName());

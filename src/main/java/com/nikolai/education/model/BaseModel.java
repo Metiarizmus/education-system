@@ -5,6 +5,8 @@ import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Objects;
 
 @MappedSuperclass
@@ -18,6 +20,13 @@ public class BaseModel implements Serializable {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    protected String dateCreated() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
+        return formatter.format(calendar.getTime());
+    }
 
     @Override
     public boolean equals(Object o) {

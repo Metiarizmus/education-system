@@ -1,11 +1,14 @@
 package com.nikolai.education.model;
 
+import com.nikolai.education.enums.ProgressTask;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 @Entity
 @Table(name = "tasks")
@@ -24,10 +27,13 @@ public class Task extends BaseModel {
     @Column(name = "description", length = 400, nullable = false)
     private String description;
 
-    @Column(name = "date_start", nullable = false)
+    @Column(name = "date_created", nullable = false)
+    private String dateCreated;
+
+    @Column(name = "date_start")
     private String dateStart;
 
-    @Column(name = "date_finish", nullable = false)
+    @Column(name = "date_finish")
     private String dateFinish;
 
     @ManyToOne()
@@ -36,9 +42,16 @@ public class Task extends BaseModel {
 
     @Column(name = "progress")
     @Enumerated(EnumType.STRING)
-    private Progress progress;
+    private ProgressTask progress;
 
-    public enum Progress {
-        IN_PROGRESS, DONE, NOT_START
+    @ManyToOne()
+    @JoinColumn(name = "users_id", nullable = false)
+    private User user;
+
+    public Task(String name, String text, String description) {
+        this.name = name;
+        this.text = text;
+        this.description = description;
+        dateCreated = dateCreated();
     }
 }

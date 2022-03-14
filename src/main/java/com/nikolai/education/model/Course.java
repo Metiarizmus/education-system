@@ -6,13 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Set;
 
 @Entity
 @Table(name = "courses")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class Course extends BaseModel {
 
@@ -35,7 +36,24 @@ public class Course extends BaseModel {
     @OneToMany(mappedBy = "course")
     private Set<Task> tasks;
 
-    @ManyToOne()
-    @JoinColumn(name = "users_id", nullable = false)
-    private User user;
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "users_courses",
+            joinColumns = {@JoinColumn(name = "courses_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "users_id", referencedColumnName = "id")}
+    )
+    private Set<User> users;
+
+    private Long creatorId;
+
+    public Course() {
+       dateCreat = dateCreated();
+    }
+
+    public Course(String name, String description, String plan) {
+        this.name = name;
+        this.description = description;
+        this.plan = plan;
+        dateCreat = dateCreated();
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.nikolai.education.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.Role;
@@ -23,4 +24,9 @@ public class UserDTO {
     private Set<Role> roles;
     private Set<Organization> org;
     private Set<Course> courses;
+
+    @JsonIgnore
+    public Set<Course> getCourses() {
+        return courses;
+    }
 }

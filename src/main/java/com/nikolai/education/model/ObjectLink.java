@@ -21,7 +21,6 @@ import java.util.Calendar;
 @NoArgsConstructor
 public class ObjectLink extends BaseModel {
 
-
     @Column(name = "created_date")
     private String createdDate;
 
