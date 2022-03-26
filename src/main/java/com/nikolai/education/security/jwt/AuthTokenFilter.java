@@ -73,6 +73,5 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 
         request.setAttribute("claims", ex.getClaims());
-
     }
 }

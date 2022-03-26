@@ -22,11 +22,10 @@ public class UserDTO {
     private String phoneNumber;
     private String dateRegistr;
     private Set<Role> roles;
-    private Set<Organization> org;
-    private Set<Course> courses;
+//    @JsonIgnore
+//    private Set<Organization> org;
+//    @JsonIgnore
+//    private Set<Course> courses;
 
-    @JsonIgnore
-    public Set<Course> getCourses() {
-        return courses;
-    }
+
 }

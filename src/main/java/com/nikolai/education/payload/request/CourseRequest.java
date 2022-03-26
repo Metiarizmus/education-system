@@ -8,5 +8,7 @@ public class CourseRequest {
     private String name;
     private String description;
     private String plan;
+    private String dateExpirationDay;
+
 
 }

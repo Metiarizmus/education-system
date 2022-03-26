@@ -1,12 +1,11 @@
 package com.nikolai.education.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.Hibernate;
-
 import javax.persistence.*;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Objects;
 import java.util.Set;
 
@@ -46,13 +45,13 @@ public class User extends BaseModel {
     @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
     private Set<Organization> org;
 
-    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
     private Set<Course> courses;
-
-    private boolean isInvite = false;
 
     @OneToMany(mappedBy = "user")
     private Set<Task> tasks;
+
+    private boolean isEnable = false;
 
     public User(String firstName, String lastName, String email, String password, String phoneNumber) {
         this.firstName = firstName;
@@ -105,7 +104,7 @@ public class User extends BaseModel {
                 ", roles=" + roles +
                 ", org=" + org +
                 ", courses=" + courses +
-                ", isInvite=" + isInvite +
+                ", isEnable=" + isEnable +
                 '}';
     }
 }

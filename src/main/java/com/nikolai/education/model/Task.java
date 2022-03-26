@@ -3,18 +3,14 @@ package com.nikolai.education.model;
 import com.nikolai.education.enums.ProgressTask;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
 @Entity
 @Table(name = "tasks")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class Task extends BaseModel {
 
@@ -44,9 +40,15 @@ public class Task extends BaseModel {
     @Enumerated(EnumType.STRING)
     private ProgressTask progress;
 
+    private Integer expirationCountHours;
+
     @ManyToOne()
-    @JoinColumn(name = "users_id", nullable = false)
+    @JoinColumn(name = "users_id")
     private User user;
+
+    public Task() {
+
+    }
 
     public Task(String name, String text, String description) {
         this.name = name;

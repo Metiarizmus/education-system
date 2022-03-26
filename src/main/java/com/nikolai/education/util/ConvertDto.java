@@ -19,22 +19,22 @@ public class ConvertDto {
     private final ModelMapper modelMapper;
 
     public OrgDTO convertOrg(Organization organization) {
-        OrgDTO orgDto = modelMapper.map(organization, OrgDTO.class);
-        return orgDto;
+        return modelMapper.map(organization, OrgDTO.class);
     }
 
     public UserDTO convertUser(User user) {
-        UserDTO userDto = modelMapper.map(user, UserDTO.class);
-        return userDto;
+        return modelMapper.map(user, UserDTO.class);
     }
 
     public CourseDTO convertCourse(Course course) {
         CourseDTO courseDTO = modelMapper.map(course, CourseDTO.class);
+      //  List<UserDTO> userDTOSet = course.getUsers().stream().map(this::convertUser).collect(Collectors.toList());
+       // courseDTO.setUsers(userDTOSet);
         return courseDTO;
     }
 
+
     public TaskDTO convertTask(Task task) {
-        TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
-        return taskDTO;
+        return modelMapper.map(task, TaskDTO.class);
     }
 }

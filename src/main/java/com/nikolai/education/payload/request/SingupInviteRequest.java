@@ -5,7 +5,7 @@ import lombok.Data;
 import javax.validation.constraints.*;
 
 @Data
-public class SingupInviteMailRequest {
+public class SingupInviteRequest {
     @NotNull
     @NotBlank(message="Please enter your first name")
     @Size(min = 3)

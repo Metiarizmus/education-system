@@ -1,6 +1,5 @@
 package com.nikolai.education.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nikolai.education.enums.StatusOrg;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.User;

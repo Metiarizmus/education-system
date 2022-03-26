@@ -1,8 +1,8 @@
 package com.nikolai.education.dto;
 
-import com.nikolai.education.model.Task;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -11,7 +11,7 @@ public class CourseDTO {
     private String description;
     private String dateCreat;
     private String plan;
-    private Set<Task> tasks;
-    private Set<UserDTO> users;
-
+    //@JsonIg
+    private Set<TaskDTO> tasks;
+    //private List<UserDTO> users;
 }

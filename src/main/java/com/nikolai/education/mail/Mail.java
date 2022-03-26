@@ -1,4 +1,4 @@
-package com.nikolai.education.model;
+package com.nikolai.education.mail;
 
 import java.util.Date;
 import java.util.List;

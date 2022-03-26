@@ -2,12 +2,8 @@ package com.nikolai.education.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import javax.persistence.*;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Set;
 
 @Entity
@@ -36,10 +32,11 @@ public class Course extends BaseModel {
     @OneToMany(mappedBy = "course")
     private Set<Task> tasks;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "users_courses",
             joinColumns = {@JoinColumn(name = "courses_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "users_id", referencedColumnName = "id")}
+
     )
     private Set<User> users;
 
