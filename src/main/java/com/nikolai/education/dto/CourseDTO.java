@@ -11,7 +11,7 @@ public class CourseDTO {
     private String description;
     private String dateCreat;
     private String plan;
-    //@JsonIg
     private Set<TaskDTO> tasks;
-    //private List<UserDTO> users;
+    private String dateExpirationDay;
+
 }

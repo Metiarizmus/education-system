@@ -1,7 +1,6 @@
 package com.nikolai.education.controller;
 
 import com.nikolai.education.enums.TypeRoles;
-import com.nikolai.education.enums.TypeWayInvited;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.ConfirmationToken;
 import com.nikolai.education.model.User;
@@ -14,6 +13,8 @@ import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.security.jwt.JwtUtils;
 import com.nikolai.education.security.userDetails.CustomUserDetails;
 import com.nikolai.education.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication controller", description = "points for registration or login in the system")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -41,6 +43,9 @@ public class AuthController {
     private final SendMessages sendMessages;
     private final ConfirmTokenRepo tokenRepo;
 
+    @Operation(
+            summary = "Registration in the system"
+    )
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
         if (userRepo.existsByEmail(signupRequest.getEmail())) {
@@ -58,6 +63,9 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully!");
     }
 
+    @Operation(
+            summary = "Login in the system"
+    )
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody SigninRequest loginRequest) {
 
@@ -87,6 +95,9 @@ public class AuthController {
 
     }
 
+    @Operation(
+            summary = "Registration in the system after clicking on the link in the mail"
+    )
     @PostMapping("/signup/invite")
     public ResponseEntity<?> inviteRegistr(@Valid @RequestBody SingupInviteRequest inviteRequest,
                                            @RequestParam("confirmToken") String confToken) {

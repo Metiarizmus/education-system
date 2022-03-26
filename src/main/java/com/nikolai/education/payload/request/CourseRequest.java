@@ -10,5 +10,4 @@ public class CourseRequest {
     private String plan;
     private String dateExpirationDay;
 
-
 }

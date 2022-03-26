@@ -1,10 +1,11 @@
 package com.nikolai.education.controller;
 
-import com.nikolai.education.dto.UserDTO;
 import com.nikolai.education.enums.TypeWayInvited;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserRepo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +19,16 @@ import java.security.Principal;
 @RequiredArgsConstructor
 @RequestMapping("/api/org/root-admin")
 @PreAuthorize("hasAuthority('ROLE_ROOT_ADMIN')")
+@Tag(name = "Root admin controller", description = "points of the main admin")
 public class RootAdminController {
 
     private final UserRepo userRepo;
     private final SendMessages sendMessages;
 
 
+    @Operation(
+            summary = "Send invitation link for admin or manager to email"
+    )
     @PostMapping("/invite-mail")
     public ResponseEntity<?> inviteAdminOrManagerMail(@Valid @RequestBody InviteRequest inviteRequest, Principal principal) {
 
@@ -46,15 +51,10 @@ public class RootAdminController {
     }
 
 
-    @DeleteMapping("/delete-user/{id}")
+    @DeleteMapping("/user/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         userRepo.deleteById(id);
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @PutMapping("/update-user/{id}")
-    public ResponseEntity<?> updateUser(@RequestBody UserDTO userDTO) {
-        return null;
     }
 
 

@@ -12,6 +12,8 @@ import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.payload.request.TaskRequest;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +28,16 @@ import java.util.List;
 @PreAuthorize("hasAuthority('ROLE_MANAGER')")
 @RequestMapping("/api/managers")
 @RequiredArgsConstructor
+@Tag(name = "Manager controller", description = "points for courses and tasks in the organization")
 public class ManagerController {
 
     private final CourseService courseService;
     private final TaskService taskService;
     private final SendMessages sendMessages;
 
+    @Operation(
+            summary = "Create course for a particular organization"
+    )
     @PostMapping("/create-course")
     public ResponseEntity<?> createCourse(@Valid @RequestBody CourseRequest courseRequest, Principal principal) {
 
@@ -41,18 +47,27 @@ public class ManagerController {
         return new ResponseEntity<>(courseDTO, HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "List of courses for a particular manager"
+    )
     @GetMapping("/courses")
     public ResponseEntity<List<CourseDTO>> listCourses(Principal principal) {
 
         return new ResponseEntity<>(courseService.getAllCourses(principal, TypeRoles.ROLE_MANAGER), HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Get course by id"
+    )
     @GetMapping("/courses/{id}")
     public ResponseEntity<CourseDTO> coursesById(@PathVariable("id") Long id) {
 
         return new ResponseEntity<>(courseService.getCourseById(id), HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Create task for a particular course"
+    )
     @PostMapping("/create-task")
     public ResponseEntity<?> createTask(@Valid @RequestBody TaskRequest taskRequest, @RequestParam("id") Long idCourse) {
 
@@ -61,7 +76,10 @@ public class ManagerController {
         return new ResponseEntity<>(taskDTO, HttpStatus.OK);
     }
 
-    @PostMapping("/invite-to-course/{idCourse}")
+    @Operation(
+            summary = "Send an invitation to join the course"
+    )
+    @PostMapping("/invite-course/{idCourse}")
     public ResponseEntity<?> inviteUserToCourse(@PathVariable() Long idCourse, @RequestBody InviteRequest inviteRequest,
                                                 Principal principal) {
 

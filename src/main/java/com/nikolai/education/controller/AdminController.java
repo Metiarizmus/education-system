@@ -6,10 +6,10 @@ import com.nikolai.education.enums.TypeRoles;
 import com.nikolai.education.enums.TypeWayInvited;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.payload.request.InviteRequest;
-import com.nikolai.education.repository.OrgRepo;
-import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,19 +23,24 @@ import java.util.List;
 @PreAuthorize("hasAuthority('ROLE_ADMIN')")
 @RequiredArgsConstructor
 @RequestMapping("/api/admin")
+@Tag(name = "Admin controller", description = "points for control users, managers and courses")
 public class AdminController {
 
     private final CourseService courseService;
     private final UserService userService;
-    private final UserRepo userRepo;
-    private final OrgRepo orgRepo;
     private final SendMessages sendMessages;
 
+    @Operation(
+            summary = "Get list of courses in the organization"
+    )
     @GetMapping("/courses")
     public ResponseEntity<List<CourseDTO>> getAllCourses(Principal principal) {
         return new ResponseEntity<>(courseService.getAllCourses(principal, TypeRoles.ROLE_ADMIN), HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Get list of users in the organization"
+    )
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getAllUsers(Principal principal) {
         List<UserDTO> dtos = userService.getAllUsersInOrg(principal, TypeRoles.ROLE_USER);
@@ -44,6 +49,9 @@ public class AdminController {
     }
 
 
+    @Operation(
+            summary = "Get list of managers in the organization"
+    )
     @GetMapping("/managers")
     public ResponseEntity<List<UserDTO>> getAllManager(Principal principal) {
         List<UserDTO> dtos = userService.getAllUsersInOrg(principal, TypeRoles.ROLE_MANAGER);
@@ -52,6 +60,9 @@ public class AdminController {
     }
 
 
+    @Operation(
+            summary = "Invite users to the organization"
+    )
     @PostMapping("/invite")
     public ResponseEntity<?> inviteUserToOrg(@RequestBody InviteRequest inviteRequest, Principal principal) {
 

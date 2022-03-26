@@ -13,6 +13,8 @@ import com.nikolai.education.repository.ConfirmTokenRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.OrgService;
 import com.nikolai.education.service.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/api/users")
+@Tag(name = "User controller", description = "points for using courses and create organizations")
 public class UserController {
 
     private final OrgService orgService;
@@ -35,6 +38,9 @@ public class UserController {
     private final ConfirmTokenRepo tokenRepo;
     private final TaskService taskService;
 
+    @Operation(
+            summary = "Create a organization"
+    )
     @PostMapping("/createOrg")
     public ResponseEntity<?> createOrg(@Valid @RequestBody OrgRequest orgRequest, Principal principal) {
         Organization organization = new Organization(orgRequest.getName(), orgRequest.getDescription(), orgRequest.getStatus());
@@ -44,17 +50,26 @@ public class UserController {
         return new ResponseEntity<>(org, HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Get list of courses for user"
+    )
     @GetMapping("/courses")
     public ResponseEntity<List<CourseDTO>> getCourses(Principal principal) {
         return new ResponseEntity<>(courseService.getAllCourses(principal, TypeRoles.ROLE_USER), HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Get course by id"
+    )
     @GetMapping("/courses/{id}")
     public ResponseEntity<CourseDTO> getCourse(@PathVariable Long id) {
         return new ResponseEntity<>(courseService.getCourseById(id), HttpStatus.OK);
     }
 
 
+    @Operation(
+            summary = "Accept an invitation to the course"
+    )
     @GetMapping("/accept-course")
     public ResponseEntity<?> acceptCourse(@RequestParam("confirmToken") String confToken) {
 
@@ -89,6 +104,9 @@ public class UserController {
         return new ResponseEntity<>("You have started the task", HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Get all public organizations in the system"
+    )
     @GetMapping("/find-public-org")
     public List<OrgDTO> findAllPublicOrgs() {
         return orgService.findAllPublicOrg();
@@ -99,6 +117,9 @@ public class UserController {
         return orgService.findOrgById(id);
     }
 
+    @Operation(
+            summary = "Join an public organization"
+    )
     @GetMapping("/join-public-org/{id}")
     public ResponseEntity<?> joinPublicOrgById(@PathVariable Long id, Principal principal) {
         orgService.joinInPublicOrg(id, principal);
