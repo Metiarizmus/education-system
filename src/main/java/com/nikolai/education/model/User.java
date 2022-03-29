@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 
@@ -14,7 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
-public class User extends BaseModel {
+public class User extends BaseModel implements Serializable {
 
     @Column(name = "first_name", length = 15)
     private String firstName;
@@ -42,7 +43,7 @@ public class User extends BaseModel {
     )
     private Set<Role> roles;
 
-    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
     private Set<Organization> org;
 
     @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
@@ -77,6 +78,10 @@ public class User extends BaseModel {
     @JsonIgnore
     public Set<Course> getCourses() {
         return courses;
+    }
+    @JsonIgnore
+    public Set<Task> getTasks() {
+        return tasks;
     }
 
     @Override

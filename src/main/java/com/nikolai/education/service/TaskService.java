@@ -2,10 +2,15 @@ package com.nikolai.education.service;
 
 import com.nikolai.education.dto.TaskDTO;
 import com.nikolai.education.enums.ProgressTask;
+import com.nikolai.education.enums.UserLogs;
 import com.nikolai.education.model.Course;
+import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.Task;
+import com.nikolai.education.model.User;
 import com.nikolai.education.repository.CourseRepo;
 import com.nikolai.education.repository.TaskRepo;
+import com.nikolai.education.repository.UserLogsRepo;
+import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.util.ConvertDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +29,8 @@ public class TaskService {
     private final ConvertDto convertDto;
     private final TaskRepo taskRepo;
     private final CourseRepo courseRepo;
+    private final UserLogsRepo userLogsRepo;
+    private final UserRepo userRepo;
 
     public TaskDTO createTask(Task task, Long courseId, Integer expirationCountHours) {
         Optional<Course> course = courseRepo.findById(courseId);
@@ -32,19 +39,19 @@ public class TaskService {
         task.setExpirationCountHours(expirationCountHours);
         log.info("create task for course {}", course.get().getName());
         taskRepo.save(task);
-        return convertDto.convertTask(task);
-    }
 
-    public List<TaskDTO> getAllTasksInCourse(Long idCourse) {
-        Optional<Course> course = courseRepo.findById(idCourse);
-        Set<Task> tasks = taskRepo.findAllByCourse(course.get());
-        log.info("get all tasks for course {}", course.get().getName());
-        return tasks.stream().map(convertDto::convertTask).collect(Collectors.toList());
+        User user = userRepo.getById(course.get().getCreatorId());
+        Logs logs = new Logs(UserLogs.CREAT_TASK, user);
+        userLogsRepo.save(logs);
+
+        return convertDto.convertTask(task);
     }
 
     public void startTask(Long taskId) {
         Task task = taskRepo.getById(taskId);
         task.setProgress(ProgressTask.IN_PROGRESS);
+        Logs logs = new Logs(UserLogs.STARTED_TASK, task.getUser());
+        userLogsRepo.save(logs);
         taskRepo.save(task);
     }
 
@@ -52,5 +59,7 @@ public class TaskService {
         Task task = taskRepo.getById(taskId);
         task.setProgress(ProgressTask.DONE);
         taskRepo.save(task);
+        Logs logs = new Logs(UserLogs.FINISH_TASK, task.getUser());
+        userLogsRepo.save(logs);
     }
 }

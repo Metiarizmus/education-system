@@ -3,6 +3,8 @@ package com.nikolai.education.service;
 import com.nikolai.education.dto.OrgDTO;
 import com.nikolai.education.enums.StatusOrg;
 import com.nikolai.education.enums.TypeRoles;
+import com.nikolai.education.enums.UserLogs;
+import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.Role;
 import com.nikolai.education.model.User;
@@ -47,7 +49,7 @@ public class OrgService {
 
     public List<OrgDTO> findAllPublicOrg() {
         List<Organization> orgs = orgRepo.findByStatus(StatusOrg.PUBLIC);
-        return orgs.stream().map(p -> convertDto.convertOrg(p)).collect(Collectors.toList());
+        return orgs.stream().map(convertDto::convertOrg).collect(Collectors.toList());
     }
 
     public OrgDTO findOrgById(Long idOrg) {
@@ -62,5 +64,9 @@ public class OrgService {
         orgRepo.save(organization);
     }
 
+    public void deleteOrg(Principal principal) {
+        Organization org = orgRepo.findByUsers(userRepo.findByEmail(principal.getName()));
+        orgRepo.delete(org);
+    }
 
 }

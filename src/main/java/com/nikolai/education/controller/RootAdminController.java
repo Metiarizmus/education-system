@@ -4,6 +4,8 @@ import com.nikolai.education.enums.TypeWayInvited;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserRepo;
+import com.nikolai.education.service.OrgService;
+import com.nikolai.education.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +24,17 @@ import java.security.Principal;
 @Tag(name = "Root admin controller", description = "points of the main admin")
 public class RootAdminController {
 
-    private final UserRepo userRepo;
+    private final UserService userService;
     private final SendMessages sendMessages;
-
+    private final OrgService orgService;
 
     @Operation(
             summary = "Send invitation link for admin or manager to email"
     )
-    @PostMapping("/invite-mail")
+    @PostMapping("/invite")
     public ResponseEntity<?> inviteAdminOrManagerMail(@Valid @RequestBody InviteRequest inviteRequest, Principal principal) {
+
+        String link = null;
 
         if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.MAIL)) {
 
@@ -42,20 +46,30 @@ public class RootAdminController {
             return new ResponseEntity<>("The invitation has been sent to email " + inviteRequest.getEmail(), HttpStatus.OK);
 
         } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.TELEGRAM)) {
-
-            sendMessages.sendInvite(inviteRequest, null, null, principal, null);
-
+            link = sendMessages.sendInvite(inviteRequest, null, null, principal, null);
         }
 
-        return new ResponseEntity<>("The invitation has been sent to telegram with number " + inviteRequest.getTelephoneNumber(), HttpStatus.OK);
+        return new ResponseEntity<>("Give this link for invite user : " + link , HttpStatus.OK);
     }
 
 
+    @Operation(
+            summary = "Delete user from an organization"
+    )
     @DeleteMapping("/user/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        userRepo.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        userService.deleteUserFromOrg(id);
+        return new ResponseEntity<>("User was deleted", HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Delete an organization"
+    )
+    @DeleteMapping("/delete-org")
+    public ResponseEntity<?> deleteOrg(Principal principal) {
+
+        orgService.deleteOrg(principal);
+        return new ResponseEntity<>("the organization was deleted", HttpStatus.OK);
+    }
 
 }

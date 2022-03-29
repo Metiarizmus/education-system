@@ -2,10 +2,7 @@ package com.nikolai.education.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nikolai.education.enums.StatusOrg;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Set;

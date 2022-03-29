@@ -8,7 +8,6 @@ import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.ConfirmationToken;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Organization;
-import com.nikolai.education.payload.request.OrgRequest;
 import com.nikolai.education.repository.ConfirmTokenRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.OrgService;
@@ -42,7 +41,7 @@ public class UserController {
             summary = "Create a organization"
     )
     @PostMapping("/createOrg")
-    public ResponseEntity<?> createOrg(@Valid @RequestBody OrgRequest orgRequest, Principal principal) {
+    public ResponseEntity<?> createOrg(@Valid @RequestBody OrgDTO orgRequest, Principal principal) {
         Organization organization = new Organization(orgRequest.getName(), orgRequest.getDescription(), orgRequest.getStatus());
 
         OrgDTO org = orgService.createOrg(organization, principal);
@@ -54,7 +53,7 @@ public class UserController {
             summary = "Get list of courses for user"
     )
     @GetMapping("/courses")
-    public ResponseEntity<List<CourseDTO>> getCourses(Principal principal) {
+    public ResponseEntity<List<? extends Object>> getCourses(Principal principal) {
         return new ResponseEntity<>(courseService.getAllCourses(principal, TypeRoles.ROLE_USER), HttpStatus.OK);
     }
 

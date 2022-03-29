@@ -71,7 +71,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/v2/*").permitAll()
                 .antMatchers("/csrf").permitAll()
                 .antMatchers("/").permitAll();
-        //.anyRequest().authenticated();
         http.addFilterBefore(authJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
     }

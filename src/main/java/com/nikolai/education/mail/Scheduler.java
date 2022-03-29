@@ -1,4 +1,4 @@
-package com.nikolai.education.notification;
+package com.nikolai.education.mail;
 
 import com.nikolai.education.enums.ProgressTask;
 import com.nikolai.education.mail.SendMessages;

@@ -3,6 +3,7 @@ package com.nikolai.education.controller;
 import com.nikolai.education.enums.TypeRoles;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.ConfirmationToken;
+import com.nikolai.education.model.Role;
 import com.nikolai.education.model.User;
 import com.nikolai.education.payload.request.SigninRequest;
 import com.nikolai.education.payload.request.SignupRequest;
@@ -26,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,7 +59,8 @@ public class AuthController {
         User user = new User(signupRequest.getFirstName(), signupRequest.getLastName(),
                 signupRequest.getEmail(), signupRequest.getPassword(), signupRequest.getPhoneNumber());
 
-        userService.saveUser(user, TypeRoles.ROLE_USER);
+        user.setRoles(Collections.singleton(new Role(TypeRoles.ROLE_USER)));
+        userService.saveUser(user);
 
         log.info("user {} registering to the system", user.getEmail());
         return ResponseEntity.ok("User registered successfully!");
@@ -122,16 +125,6 @@ public class AuthController {
         user.setLastName(inviteRequest.getLastName());
         user.setPassword(inviteRequest.getPassword());
         user.setPhoneNumber(inviteRequest.getPhoneNumber());
-
-    //    TypeWayInvited wayInvited = TypeWayInvited.MAIL;
-
-//        if (token.getTypeWayInvited().equals(TypeWayInvited.TELEGRAM)) {
-//            String mailContent = "Please confirm that you click on the link in telegram for number phone " + user.getPhoneNumber();
-//            String linkConfirm = "";
-//            String emailSubject = "Confirmation user";
-//            sendMessages.sendNotificationAccepted(user.getEmail(), mailContent, emailSubject);
-//            wayInvited = TypeWayInvited.TELEGRAM;
-//        }
 
         userService.saveUserInvite(user, token.getIdSender(), token.getIdCourse());
         log.info("invited user {} registering to the system", user.getEmail());

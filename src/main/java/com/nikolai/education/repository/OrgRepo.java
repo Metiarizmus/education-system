@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface OrgRepo extends JpaRepository<Organization, Long> {
 
-    Organization findByCreatorId(Long id);
+    Organization findByUsers_email(String email);
     Organization findByUsers(User user);
     Organization findByUsers_id(Long id);
     List<Organization> findByStatus(StatusOrg statusOrg);

@@ -7,11 +7,10 @@ import com.nikolai.education.enums.TypeWayInvited;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Task;
-import com.nikolai.education.payload.request.CourseRequest;
 import com.nikolai.education.payload.request.InviteRequest;
-import com.nikolai.education.payload.request.TaskRequest;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.TaskService;
+import com.nikolai.education.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +33,13 @@ public class ManagerController {
     private final CourseService courseService;
     private final TaskService taskService;
     private final SendMessages sendMessages;
+    private final UserService userService;
 
     @Operation(
             summary = "Create course for a particular organization"
     )
     @PostMapping("/create-course")
-    public ResponseEntity<?> createCourse(@Valid @RequestBody CourseRequest courseRequest, Principal principal) {
+    public ResponseEntity<?> createCourse(@Valid @RequestBody CourseDTO courseRequest, Principal principal) {
 
         Course course = new Course(courseRequest.getName(), courseRequest.getDescription(), courseRequest.getPlan());
         CourseDTO courseDTO = courseService.createCourse(course, principal);
@@ -51,8 +51,7 @@ public class ManagerController {
             summary = "List of courses for a particular manager"
     )
     @GetMapping("/courses")
-    public ResponseEntity<List<CourseDTO>> listCourses(Principal principal) {
-
+    public ResponseEntity<List<? extends Object>> listCourses(Principal principal) {
         return new ResponseEntity<>(courseService.getAllCourses(principal, TypeRoles.ROLE_MANAGER), HttpStatus.OK);
     }
 
@@ -61,7 +60,6 @@ public class ManagerController {
     )
     @GetMapping("/courses/{id}")
     public ResponseEntity<CourseDTO> coursesById(@PathVariable("id") Long id) {
-
         return new ResponseEntity<>(courseService.getCourseById(id), HttpStatus.OK);
     }
 
@@ -69,7 +67,7 @@ public class ManagerController {
             summary = "Create task for a particular course"
     )
     @PostMapping("/create-task")
-    public ResponseEntity<?> createTask(@Valid @RequestBody TaskRequest taskRequest, @RequestParam("id") Long idCourse) {
+    public ResponseEntity<?> createTask(@Valid @RequestBody TaskDTO taskRequest, @RequestParam("id") Long idCourse) {
 
         Task task = new Task(taskRequest.getName(), taskRequest.getContent(), taskRequest.getDescription());
         TaskDTO taskDTO = taskService.createTask(task, idCourse, taskRequest.getExpirationCountHours());
@@ -77,21 +75,46 @@ public class ManagerController {
     }
 
     @Operation(
-            summary = "Send an invitation to join the course"
+            summary = "Send an invitation to join a course"
     )
     @PostMapping("/invite-course/{idCourse}")
     public ResponseEntity<?> inviteUserToCourse(@PathVariable() Long idCourse, @RequestBody InviteRequest inviteRequest,
                                                 Principal principal) {
-
+        String link = null;
 
         if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.MAIL)) {
             String emailSubject = "Invitation to join to the organization on course";
             String mailContent = "Manager invite you to the course ";
-            sendMessages.sendInvite(inviteRequest,emailSubject,mailContent,principal, idCourse);
-            return new ResponseEntity<>("The invitation has been sent " + inviteRequest.getEmail(),HttpStatus.OK);
+            sendMessages.sendInvite(inviteRequest, emailSubject, mailContent, principal, idCourse);
+            return new ResponseEntity<>("The invitation has been sent " + inviteRequest.getEmail(), HttpStatus.OK);
+        } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.TELEGRAM)) {
+            link = sendMessages.sendInvite(inviteRequest, null, null, principal, idCourse);
         }
 
-        return new ResponseEntity<>("The invitation has been sent " + inviteRequest.getTelephoneNumber(),HttpStatus.OK);
+        return new ResponseEntity<>("Give this link for invite user : " + link, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Delete user from a course"
+    )
+    @DeleteMapping("/delete-user/{idCourse}/{idUser}")
+    public ResponseEntity<?> deleteUserFromCourse(@PathVariable("idCourse") Long idCourse,
+                                                  @PathVariable("idUser") Long idUser) {
+
+        userService.deleteUserFromCourse(idCourse, idUser);
+
+        return new ResponseEntity<>("User was deleted from the course", HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Delete a course"
+    )
+    @DeleteMapping("/delete-course/{idCourse}")
+    public ResponseEntity<?> deleteCourse(@PathVariable("idCourse") Long idCourse) {
+
+        courseService.deleteCourse(idCourse);
+
+        return new ResponseEntity<>("Course was deleted", HttpStatus.OK);
     }
 
 

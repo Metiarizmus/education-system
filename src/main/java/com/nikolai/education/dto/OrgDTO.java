@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 @Getter
@@ -16,8 +18,14 @@ import java.util.Set;
 @NoArgsConstructor
 public class OrgDTO {
 
+    @NotNull
+    @NotBlank(message = "Please enter name organization")
     private String name;
+    @NotNull
+    @NotBlank(message = "Please enter description organization")
     private String description;
+    @NotNull
+    @NotBlank(message = "Please enter status organization(private or public)")
     private StatusOrg status;
     private Set<User> users;
     private Set<Course> courses;
