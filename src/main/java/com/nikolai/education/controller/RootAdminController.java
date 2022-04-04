@@ -2,7 +2,8 @@ package com.nikolai.education.controller;
 
 import com.nikolai.education.enums.TypeWayInvited;
 import com.nikolai.education.mail.SendMessages;
-import com.nikolai.education.payload.request.InviteRequest;
+import com.nikolai.education.model.User;
+import com.nikolai.education.payload.request.InviteRequestToken;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.OrgService;
 import com.nikolai.education.service.UserService;
@@ -27,12 +28,13 @@ public class RootAdminController {
     private final UserService userService;
     private final SendMessages sendMessages;
     private final OrgService orgService;
+    private final UserRepo userRepo;
 
     @Operation(
             summary = "Send invitation link for admin or manager to email"
     )
     @PostMapping("/invite")
-    public ResponseEntity<?> inviteAdminOrManagerMail(@Valid @RequestBody InviteRequest inviteRequest, Principal principal) {
+    public ResponseEntity<?> inviteAdminOrManagerMail(@Valid @RequestBody InviteRequestToken inviteRequest, Principal principal) {
 
         String link = null;
 
@@ -67,8 +69,8 @@ public class RootAdminController {
     )
     @DeleteMapping("/delete-org")
     public ResponseEntity<?> deleteOrg(Principal principal) {
-
-        orgService.deleteOrg(principal);
+        User user = userRepo.findByEmail(principal.getName());
+        orgService.deleteOrg(user);
         return new ResponseEntity<>("the organization was deleted", HttpStatus.OK);
     }
 

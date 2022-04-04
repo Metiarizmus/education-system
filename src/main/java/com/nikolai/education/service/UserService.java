@@ -12,15 +12,18 @@ import com.nikolai.education.repository.CourseRepo;
 import com.nikolai.education.repository.OrgRepo;
 import com.nikolai.education.repository.UserLogsRepo;
 import com.nikolai.education.repository.UserRepo;
+import com.nikolai.education.security.userDetails.CustomUserDetails;
 import com.nikolai.education.util.ConvertDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.security.Principal;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,7 +32,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepo userRepo;
     private final OrgRepo orgRepo;
@@ -37,7 +40,19 @@ public class UserService {
     private final ConvertDto convertDto;
     private final CourseRepo courseRepo;
     private final UserLogsRepo userLogsRepo;
-    private final RedisService redisService;
+    private final CacheManager<UserDTO> cacheManager;
+
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        var user = userRepo.findByEmail(email);
+
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found with email: " + email);
+        }
+
+        return CustomUserDetails.build(user);
+    }
 
     public void saveUser(User user) {
 
@@ -49,7 +64,7 @@ public class UserService {
         userRepo.save(user);
     }
 
-    @Cacheable(value= "Users", key="#id")
+    @Cacheable(value = "Users", key = "#id")
     public UserDTO getById(Long id) {
         return convertDto.convertUser(userRepo.getById(id));
     }
@@ -73,26 +88,25 @@ public class UserService {
 
     }
 
-    public List<? extends Object>  getAllUsersInOrg(Principal principal, TypeRoles typeRoles) {
+    public List<?> getAllUsersInOrg(User user, TypeRoles typeRoles) {
+        String key = null;
 
-        User user = userRepo.findByEmail(principal.getName());
+        switch (typeRoles) {
+            case ROLE_USER: key="list:users";break;
+            case ROLE_MANAGER: key="list:managers";break;
+            case ROLE_ADMIN: key="list:admins";break;
+            case ROLE_ROOT_ADMIN: key="list:root-admins";
+        }
+
         Organization organization = orgRepo.findByUsers(user);
 
-        List<User> list = userRepo.findAllByOrgAndRoles_nameRoles(organization, typeRoles);
+            List<User> list = userRepo.findAllByOrgAndRoles_nameRoles(organization, typeRoles);
+            if (typeRoles.equals(TypeRoles.ROLE_USER)) {
+                list.removeIf(q -> q.getRoles().size() >= 2);
+            }
+            List<UserDTO> dtos = list.stream().map(convertDto::convertUser).collect(Collectors.toList());
 
-        if (typeRoles.equals(TypeRoles.ROLE_USER)) {
-            list.removeIf(q -> q.getRoles().size() >= 2);
-        }
-
-        List<UserDTO> dtos = list.stream().map(convertDto::convertUser).collect(Collectors.toList());
-
-        String key = "list:users";
-        redisService.lPushAll(key, ArrayUtils.toArray(dtos, UserDTO.class));
-        List<Object> cachedLogs = redisService.lRange(key, 0, list.size());
-        if (cachedLogs.isEmpty()) {
-            return dtos;
-        }
-        return cachedLogs;
+        return cacheManager.cached(key,dtos);
 
     }
 

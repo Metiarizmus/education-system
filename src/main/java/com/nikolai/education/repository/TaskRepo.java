@@ -10,7 +10,7 @@ import java.util.Set;
 
 public interface TaskRepo extends JpaRepository<Task, Long> {
 
-    Set<Task> findAllByCourse(Course course);
+    List<Task> findAllByCourse(Course course);
     Task findByCourseAndNameContains(Course course, String testControl);
     List<Task> findTaskByProgress(ProgressTask progressTask);
 }

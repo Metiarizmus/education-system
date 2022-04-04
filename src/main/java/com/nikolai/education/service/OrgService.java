@@ -3,8 +3,6 @@ package com.nikolai.education.service;
 import com.nikolai.education.dto.OrgDTO;
 import com.nikolai.education.enums.StatusOrg;
 import com.nikolai.education.enums.TypeRoles;
-import com.nikolai.education.enums.UserLogs;
-import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.Role;
 import com.nikolai.education.model.User;
@@ -16,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -32,16 +29,15 @@ public class OrgService {
     private final ConvertDto convertDto;
 
     @Transactional
-    public OrgDTO createOrg(Organization organization, Principal principal) {
+    public OrgDTO createOrg(Organization organization, User user) {
 
-        Optional<User> user = Optional.ofNullable(userRepo.findByEmail(principal.getName()));
         Role role = new Role(TypeRoles.ROLE_ROOT_ADMIN);
-        user.get().getRoles().add(role);
+        user.getRoles().add(role);
 
-        organization.setCreatorId(user.get().getId());
-        organization.setUsers(Collections.singleton(user.get()));
+        organization.setCreatorId(user.getId());
+        organization.setUsers(Collections.singleton(user));
 
-        userRepo.save(user.get());
+        userRepo.save(user);
         orgRepo.save(organization);
 
         return convertDto.convertOrg(organization);
@@ -57,15 +53,14 @@ public class OrgService {
         return (OrgDTO) org.stream().map(convertDto::convertOrg).collect(Collectors.toList());
     }
 
-    public void joinInPublicOrg(Long idOrg, Principal principal) {
-        User user = userRepo.findByEmail(principal.getName());
+    public void joinInPublicOrg(Long idOrg, User user) {
         Organization organization = orgRepo.getById(idOrg);
         organization.getUsers().add(user);
         orgRepo.save(organization);
     }
 
-    public void deleteOrg(Principal principal) {
-        Organization org = orgRepo.findByUsers(userRepo.findByEmail(principal.getName()));
+    public void deleteOrg(User user) {
+        Organization org = orgRepo.findByUsers(user);
         orgRepo.delete(org);
     }
 

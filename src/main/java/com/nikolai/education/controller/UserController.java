@@ -8,7 +8,9 @@ import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.ConfirmationToken;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Organization;
+import com.nikolai.education.model.User;
 import com.nikolai.education.repository.ConfirmTokenRepo;
+import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.OrgService;
 import com.nikolai.education.service.TaskService;
@@ -36,6 +38,7 @@ public class UserController {
     private final SendMessages sendMessages;
     private final ConfirmTokenRepo tokenRepo;
     private final TaskService taskService;
+    private final UserRepo userRepo;
 
     @Operation(
             summary = "Create a organization"
@@ -43,8 +46,8 @@ public class UserController {
     @PostMapping("/createOrg")
     public ResponseEntity<?> createOrg(@Valid @RequestBody OrgDTO orgRequest, Principal principal) {
         Organization organization = new Organization(orgRequest.getName(), orgRequest.getDescription(), orgRequest.getStatus());
-
-        OrgDTO org = orgService.createOrg(organization, principal);
+        User user = userRepo.findByEmail(principal.getName());
+        OrgDTO org = orgService.createOrg(organization, user);
 
         return new ResponseEntity<>(org, HttpStatus.OK);
     }
@@ -53,8 +56,9 @@ public class UserController {
             summary = "Get list of courses for user"
     )
     @GetMapping("/courses")
-    public ResponseEntity<List<? extends Object>> getCourses(Principal principal) {
-        return new ResponseEntity<>(courseService.getAllCourses(principal, TypeRoles.ROLE_USER), HttpStatus.OK);
+    public ResponseEntity<List<?>> getCourses(Principal principal) {
+        User user = userRepo.findByEmail(principal.getName());
+        return new ResponseEntity<>(courseService.getAllCourses(user, TypeRoles.ROLE_USER), HttpStatus.OK);
     }
 
     @Operation(
@@ -84,9 +88,10 @@ public class UserController {
         return new ResponseEntity<>("course \"" + course.getName() + "\" was accepted to you", HttpStatus.ACCEPTED);
     }
 
-    @GetMapping("/start-course/{id}")
+    @GetMapping("/start-courses/{id}")
     public ResponseEntity<TaskDTO> startCourse(@PathVariable Long id, Principal principal) {
-        TaskDTO taskDTO = courseService.startCourse(id, principal);
+        User user = userRepo.findByEmail(principal.getName());
+        TaskDTO taskDTO = courseService.startCourse(id, user);
 
         return new ResponseEntity<>(taskDTO, HttpStatus.OK);
     }
@@ -106,24 +111,25 @@ public class UserController {
     @Operation(
             summary = "Get all public organizations in the system"
     )
-    @GetMapping("/find-public-org")
+    @GetMapping("/public-orgs")
     public List<OrgDTO> findAllPublicOrgs() {
         return orgService.findAllPublicOrg();
     }
 
-    @GetMapping("/find-public-org/{id}")
+    @GetMapping("/public-orgs/{id}")
     public OrgDTO findPublicOrgById(@PathVariable Long id) {
         return orgService.findOrgById(id);
     }
 
     @Operation(
-            summary = "Join an public organization"
+            summary = "Join a public organization"
     )
-    @GetMapping("/join-public-org/{id}")
+    @GetMapping("/join-public-orgs/{id}")
     public ResponseEntity<?> joinPublicOrgById(@PathVariable Long id, Principal principal) {
-        orgService.joinInPublicOrg(id, principal);
+        User user = userRepo.findByEmail(principal.getName());
+        orgService.joinInPublicOrg(id, user);
 
-        return new ResponseEntity<>("you join to the organization", HttpStatus.ACCEPTED);
+        return new ResponseEntity<>("you join to the organization", HttpStatus.OK);
     }
 
 }

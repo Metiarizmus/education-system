@@ -12,6 +12,6 @@ public class CourseDTO {
     private String dateCreat;
     private String plan;
     private Set<TaskDTO> tasks;
-    private String dateExpirationDay;
+    //private String dateExpirationDay;
 
 }

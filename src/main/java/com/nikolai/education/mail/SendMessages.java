@@ -6,7 +6,7 @@ import com.nikolai.education.model.ConfirmationToken;
 import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.Role;
 import com.nikolai.education.model.User;
-import com.nikolai.education.payload.request.InviteRequest;
+import com.nikolai.education.payload.request.InviteRequestToken;
 import com.nikolai.education.repository.UserLogsRepo;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.ConfirmationTokenService;
@@ -35,7 +35,7 @@ public class SendMessages {
     private static final String COURSE_LINK = "http://localhost:8080/api/users/accept-course?confirmToken=%s";
     private static final String REGISTR_LINK = "http://localhost:8080/api/auth/signup/invite?confirmToken=%s";
 
-    public String sendInvite(InviteRequest recipient, String emailSubject, String emailContent, Principal principal, Long idCourse) {
+    public String sendInvite(InviteRequestToken recipient, String emailSubject, String emailContent, Principal principal, Long idCourse) {
 
         User sender = userRepo.findByEmail(principal.getName());
 

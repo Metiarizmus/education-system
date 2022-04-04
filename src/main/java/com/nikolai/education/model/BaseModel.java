@@ -5,6 +5,8 @@ import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.sql.Date;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Objects;
@@ -24,7 +26,13 @@ public class BaseModel implements Serializable {
     protected String dateCreated() {
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        return formatter.format(calendar.getTime());
+    }
 
+    protected String finishData(int dateExpirationDay) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, dateExpirationDay);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         return formatter.format(calendar.getTime());
     }
 

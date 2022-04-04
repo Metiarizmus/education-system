@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class InviteRequest {
+public class InviteRequestToken {
 
     private String email;
     private String telephoneNumber;
@@ -16,8 +16,6 @@ public class InviteRequest {
     @NotBlank(message = "Please enter type invite(ADMIN, MANAGER, USER)")
     private TypeRoles role;
     private Integer expirationDateCount;
-    private String botToken;
-    private String chatId;
     private TypeWayInvited typeWayInvited;
 
 }

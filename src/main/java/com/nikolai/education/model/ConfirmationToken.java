@@ -5,10 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import javax.persistence.*;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.UUID;
 
 @Table(name = "confirm_token")
@@ -33,19 +30,14 @@ public class ConfirmationToken extends BaseModel {
 
     private Long idCourse;
 
-    //@Enumerated(EnumType.STRING)
     private TypeWayInvited typeWayInvited;
 
     @Column(name = "token")
     private String confirmationToken;
 
     public ConfirmationToken(User user, int dateExpirationDay, Long idSender, TypeWayInvited invited) {
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        createdDate = formatter.format(calendar.getTime());
-        calendar.add(Calendar.DATE, dateExpirationDay);
-
-        finishDate = formatter.format(calendar.getTime());
+        createdDate = dateCreated();
+        finishDate = finishData(dateExpirationDay);
         this.user = user;
         this.idSender = idSender;
         typeWayInvited = invited;

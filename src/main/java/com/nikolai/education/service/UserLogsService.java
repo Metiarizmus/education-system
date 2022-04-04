@@ -2,14 +2,12 @@ package com.nikolai.education.service;
 
 import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.Organization;
-import com.nikolai.education.redis.RedisService;
+import com.nikolai.education.model.User;
 import com.nikolai.education.repository.OrgRepo;
 import com.nikolai.education.repository.UserLogsRepo;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.util.List;
 
 @Service
@@ -17,18 +15,14 @@ import java.util.List;
 public class UserLogsService {
     private final UserLogsRepo userLogsRepo;
     private final OrgRepo orgRepo;
-    private final RedisService redisService;
+    private final CacheManager cacheManager;
 
-    public List<? extends Object> findAll(Principal principal) {
-        Organization org = orgRepo.findByUsers_email(principal.getName());
-        List<Logs> list = userLogsRepo.findAllByUser_Org(org);
-        
+    public List<?> findAll(User user) {
         String key = "list:logs";
-        redisService.lPushAll(key, ArrayUtils.toArray(list, Logs.class));
-        List<Object> cachedLogs = redisService.lRange(key, 0, list.size());
-        if (cachedLogs.isEmpty()) {
-            return list;
-        }
-        return cachedLogs;
+
+        Organization org = orgRepo.findByUsers(user);
+        List<Logs> list = userLogsRepo.findAllByUser_Org(org);
+
+        return cacheManager.cached(key, list);
     }
 }

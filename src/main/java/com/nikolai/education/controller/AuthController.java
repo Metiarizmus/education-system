@@ -1,13 +1,11 @@
 package com.nikolai.education.controller;
 
+import com.nikolai.education.dto.UserDTO;
 import com.nikolai.education.enums.TypeRoles;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.ConfirmationToken;
 import com.nikolai.education.model.Role;
 import com.nikolai.education.model.User;
-import com.nikolai.education.payload.request.SigninRequest;
-import com.nikolai.education.payload.request.SignupRequest;
-import com.nikolai.education.payload.request.SingupInviteRequest;
 import com.nikolai.education.payload.response.JwtResponse;
 import com.nikolai.education.repository.ConfirmTokenRepo;
 import com.nikolai.education.repository.UserRepo;
@@ -49,7 +47,7 @@ public class AuthController {
             summary = "Registration in the system"
     )
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserDTO signupRequest) {
         if (userRepo.existsByEmail(signupRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
@@ -70,7 +68,7 @@ public class AuthController {
             summary = "Login in the system"
     )
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody SigninRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody UserDTO loginRequest) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
@@ -102,7 +100,7 @@ public class AuthController {
             summary = "Registration in the system after clicking on the link in the mail"
     )
     @PostMapping("/signup/invite")
-    public ResponseEntity<?> inviteRegistr(@Valid @RequestBody SingupInviteRequest inviteRequest,
+    public ResponseEntity<?> inviteRegistr(@Valid @RequestBody UserDTO inviteRequest,
                                            @RequestParam("confirmToken") String confToken) {
 
         ConfirmationToken token = tokenRepo.findByConfirmationToken(confToken);
@@ -121,18 +119,19 @@ public class AuthController {
 
 
         User user = userRepo.getById(token.getUser().getId());
-        user.setFirstName(inviteRequest.getFirstName());
-        user.setLastName(inviteRequest.getLastName());
-        user.setPassword(inviteRequest.getPassword());
-        user.setPhoneNumber(inviteRequest.getPhoneNumber());
+        if (user != null) {
+            user.setFirstName(inviteRequest.getFirstName());
+            user.setLastName(inviteRequest.getLastName());
+            user.setPassword(inviteRequest.getPassword());
+            user.setPhoneNumber(inviteRequest.getPhoneNumber());
 
-        userService.saveUserInvite(user, token.getIdSender(), token.getIdCourse());
-        log.info("invited user {} registering to the system", user.getEmail());
+            userService.saveUserInvite(user, token.getIdSender(), token.getIdCourse());
+            log.info("invited user {} registering to the system", user.getEmail());
 
-        return ResponseEntity.ok("User registered successfully!");
+            return ResponseEntity.ok("User registered successfully!");
+        }
+        return ResponseEntity.ok("No such user was found");
     }
-
-
 
 
 }

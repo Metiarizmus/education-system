@@ -15,8 +15,8 @@ public class SpringFoxConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                                .title("Education Swagger Api")
-                                .version("1.0.0")
+                        .title("Education Swagger Api")
+                        .version("1.0.0")
                         .contact(
                                 new Contact()
                                         .email("stormytt15@gmail.com")

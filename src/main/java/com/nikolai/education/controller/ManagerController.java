@@ -7,7 +7,9 @@ import com.nikolai.education.enums.TypeWayInvited;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Task;
-import com.nikolai.education.payload.request.InviteRequest;
+import com.nikolai.education.model.User;
+import com.nikolai.education.payload.request.InviteRequestToken;
+import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.TaskService;
 import com.nikolai.education.service.UserService;
@@ -34,6 +36,7 @@ public class ManagerController {
     private final TaskService taskService;
     private final SendMessages sendMessages;
     private final UserService userService;
+    private final UserRepo userRepo;
 
     @Operation(
             summary = "Create course for a particular organization"
@@ -42,7 +45,8 @@ public class ManagerController {
     public ResponseEntity<?> createCourse(@Valid @RequestBody CourseDTO courseRequest, Principal principal) {
 
         Course course = new Course(courseRequest.getName(), courseRequest.getDescription(), courseRequest.getPlan());
-        CourseDTO courseDTO = courseService.createCourse(course, principal);
+        User user = userRepo.findByEmail(principal.getName());
+        CourseDTO courseDTO = courseService.createCourse(course, user);
 
         return new ResponseEntity<>(courseDTO, HttpStatus.OK);
     }
@@ -51,23 +55,28 @@ public class ManagerController {
             summary = "List of courses for a particular manager"
     )
     @GetMapping("/courses")
-    public ResponseEntity<List<? extends Object>> listCourses(Principal principal) {
-        return new ResponseEntity<>(courseService.getAllCourses(principal, TypeRoles.ROLE_MANAGER), HttpStatus.OK);
+    public ResponseEntity<List<?>> listCourses(Principal principal) {
+        User user = userRepo.findByEmail(principal.getName());
+        return new ResponseEntity<>(courseService.getAllCourses(user, TypeRoles.ROLE_MANAGER), HttpStatus.OK);
     }
 
     @Operation(
             summary = "Get course by id"
     )
     @GetMapping("/courses/{id}")
-    public ResponseEntity<CourseDTO> coursesById(@PathVariable("id") Long id) {
-        return new ResponseEntity<>(courseService.getCourseById(id), HttpStatus.OK);
+    public ResponseEntity<?> coursesById(@PathVariable("id") Long id) {
+        CourseDTO courseDTO = courseService.getCourseById(id);
+        if (courseDTO != null) {
+            return new ResponseEntity<>(courseDTO, HttpStatus.OK);
+        }
+        return new ResponseEntity<>("It course dont exist", HttpStatus.BAD_REQUEST);
     }
 
     @Operation(
             summary = "Create task for a particular course"
     )
-    @PostMapping("/create-task")
-    public ResponseEntity<?> createTask(@Valid @RequestBody TaskDTO taskRequest, @RequestParam("id") Long idCourse) {
+    @PostMapping("courses/{id}/create-task")
+    public ResponseEntity<?> createTask(@Valid @RequestBody TaskDTO taskRequest, @PathVariable("id") Long idCourse) {
 
         Task task = new Task(taskRequest.getName(), taskRequest.getContent(), taskRequest.getDescription());
         TaskDTO taskDTO = taskService.createTask(task, idCourse, taskRequest.getExpirationCountHours());
@@ -78,7 +87,7 @@ public class ManagerController {
             summary = "Send an invitation to join a course"
     )
     @PostMapping("/invite-course/{idCourse}")
-    public ResponseEntity<?> inviteUserToCourse(@PathVariable() Long idCourse, @RequestBody InviteRequest inviteRequest,
+    public ResponseEntity<?> inviteUserToCourse(@PathVariable() Long idCourse, @RequestBody InviteRequestToken inviteRequest,
                                                 Principal principal) {
         String link = null;
 
