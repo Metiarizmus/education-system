@@ -28,6 +28,9 @@ public class Organization extends BaseModel {
     @Enumerated(EnumType.ORDINAL)
     private StatusOrg status;
 
+    @Column(name = "date_created", nullable = false)
+    private String dateCreated;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "users_org",
             joinColumns = {@JoinColumn(name = "org_id", referencedColumnName = "id")},
@@ -42,6 +45,7 @@ public class Organization extends BaseModel {
         this.name = name;
         this.description = description;
         this.status = status;
+        dateCreated = dateCreated();
     }
 
     @JsonIgnore

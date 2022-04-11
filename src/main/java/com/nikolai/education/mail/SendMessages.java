@@ -2,14 +2,16 @@ package com.nikolai.education.mail;
 
 import com.nikolai.education.enums.TypeWayInvited;
 import com.nikolai.education.enums.UserLogs;
-import com.nikolai.education.model.ConfirmationToken;
+import com.nikolai.education.model.InvitationLink;
 import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.Role;
 import com.nikolai.education.model.User;
-import com.nikolai.education.payload.request.InviteRequestToken;
+import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserLogsRepo;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.ConfirmationTokenService;
+import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.request.SendMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -35,7 +37,7 @@ public class SendMessages {
     private static final String COURSE_LINK = "http://localhost:8080/api/users/accept-course?confirmToken=%s";
     private static final String REGISTR_LINK = "http://localhost:8080/api/auth/signup/invite?confirmToken=%s";
 
-    public String sendInvite(InviteRequestToken recipient, String emailSubject, String emailContent, Principal principal, Long idCourse) {
+    public void sendInvite(InviteRequest recipient, String emailSubject, String content, Principal principal, Long idCourse) {
 
         User sender = userRepo.findByEmail(principal.getName());
 
@@ -51,7 +53,7 @@ public class SendMessages {
         }
 
 
-        ConfirmationToken confirmationToken = new ConfirmationToken(user, recipient.getExpirationDateCount(), sender.getId(), recipient.getTypeWayInvited());
+        InvitationLink confirmationToken = new InvitationLink(user, recipient.getExpirationDateCount(), sender.getId(), recipient.getTypeWayInvited());
         confirmationToken.setIdCourse(idCourse);
         confirmationTokenService.saveConfirmToken(confirmationToken, recipient.getRole());
 
@@ -65,25 +67,36 @@ public class SendMessages {
 
         if (recipient.getTypeWayInvited().equals(TypeWayInvited.MAIL)) {
             link = "<a href=" + link + ">click</a>";
-            sendMessageToEmail(sender.getEmail(), recipient.getEmail(), emailSubject, emailContent, link);
+            sendMessageToEmail(sender.getEmail(), recipient.getEmail(), emailSubject, content, link);
+        } else {
+            sendMessageToTelegram(recipient.getBotToken(), recipient.getChatId(), content + " " + link);
         }
         log.info("send invite link {} in the org :: ", link);
         Logs logs = new Logs(UserLogs.INVITE, user);
         userLogsRepo.save(logs);
 
-       return link;
     }
 
 
     @Async
     public void sendMessageToEmail(String emailSender, String emailRecipient, String emailSubject,
-                                    String emailContent, String link) {
+                                   String emailContent, String link) {
         Mail mail = new Mail();
         mail.setMailFrom(emailSender);
         mail.setMailTo(emailRecipient);
         mail.setMailSubject(emailSubject);
         mail.setMailContent(emailContent + link);
         mailService.sendEmail(mail);
+    }
+
+
+    @Async
+    public void sendMessageToTelegram(String botToken, int chatId, String message) {
+        TelegramBot bot = new TelegramBot(botToken);
+
+        SendMessage request = new SendMessage(chatId, message);
+
+        bot.execute(request);
     }
 
     @Async

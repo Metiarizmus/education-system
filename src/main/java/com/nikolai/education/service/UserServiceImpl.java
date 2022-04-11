@@ -7,12 +7,11 @@ import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.User;
-import com.nikolai.education.redis.RedisService;
 import com.nikolai.education.repository.CourseRepo;
 import com.nikolai.education.repository.OrgRepo;
 import com.nikolai.education.repository.UserLogsRepo;
 import com.nikolai.education.repository.UserRepo;
-import com.nikolai.education.security.userDetails.CustomUserDetails;
+import com.nikolai.education.security.CustomUserDetails;
 import com.nikolai.education.util.ConvertDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
-public class UserService implements UserDetailsService {
+public class UserServiceImpl implements UserDetailsService {
 
     private final UserRepo userRepo;
     private final OrgRepo orgRepo;
@@ -51,8 +50,7 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
 
-        return CustomUserDetails.build(user);
-    }
+        return CustomUserDetails.build(user);    }
 
     public void saveUser(User user) {
 
@@ -106,7 +104,7 @@ public class UserService implements UserDetailsService {
             }
             List<UserDTO> dtos = list.stream().map(convertDto::convertUser).collect(Collectors.toList());
 
-        return cacheManager.cached(key,dtos);
+        return cacheManager.cachedList(key,dtos);
 
     }
 

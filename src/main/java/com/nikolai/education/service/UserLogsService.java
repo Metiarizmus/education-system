@@ -23,6 +23,6 @@ public class UserLogsService {
         Organization org = orgRepo.findByUsers(user);
         List<Logs> list = userLogsRepo.findAllByUser_Org(org);
 
-        return cacheManager.cached(key, list);
+        return cacheManager.cachedList(key, list);
     }
 }

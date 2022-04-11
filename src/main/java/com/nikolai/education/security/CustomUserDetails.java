@@ -1,4 +1,5 @@
-package com.nikolai.education.security.userDetails;
+package com.nikolai.education.security;
+
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nikolai.education.model.User;
@@ -76,4 +77,3 @@ public class CustomUserDetails implements UserDetails {
         return true;
     }
 }
-

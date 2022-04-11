@@ -8,11 +8,11 @@ import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Task;
 import com.nikolai.education.model.User;
-import com.nikolai.education.payload.request.InviteRequestToken;
+import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.TaskService;
-import com.nikolai.education.service.UserService;
+import com.nikolai.education.service.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class ManagerController {
     private final CourseService courseService;
     private final TaskService taskService;
     private final SendMessages sendMessages;
-    private final UserService userService;
+    private final UserServiceImpl userService;
     private final UserRepo userRepo;
 
     @Operation(
@@ -87,20 +87,20 @@ public class ManagerController {
             summary = "Send an invitation to join a course"
     )
     @PostMapping("/invite-course/{idCourse}")
-    public ResponseEntity<?> inviteUserToCourse(@PathVariable() Long idCourse, @RequestBody InviteRequestToken inviteRequest,
+    public ResponseEntity<?> inviteUserToCourse(@PathVariable() Long idCourse, @RequestBody InviteRequest inviteRequest,
                                                 Principal principal) {
-        String link = null;
+
+        String emailSubject = "Invitation to join to the organization on course";
+        String content = "Manager invite you to the course ";
 
         if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.MAIL)) {
-            String emailSubject = "Invitation to join to the organization on course";
-            String mailContent = "Manager invite you to the course ";
-            sendMessages.sendInvite(inviteRequest, emailSubject, mailContent, principal, idCourse);
+            sendMessages.sendInvite(inviteRequest, emailSubject, content, principal, idCourse);
             return new ResponseEntity<>("The invitation has been sent " + inviteRequest.getEmail(), HttpStatus.OK);
         } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.TELEGRAM)) {
-            link = sendMessages.sendInvite(inviteRequest, null, null, principal, idCourse);
+            sendMessages.sendInvite(inviteRequest, null, content, principal, idCourse);
         }
 
-        return new ResponseEntity<>("Give this link for invite user : " + link, HttpStatus.OK);
+        return new ResponseEntity<>("The invitation has been sent to telegram " + inviteRequest.getTelephoneNumber(), HttpStatus.OK);
     }
 
     @Operation(

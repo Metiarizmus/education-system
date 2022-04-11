@@ -8,13 +8,13 @@ import lombok.ToString;
 import javax.persistence.*;
 import java.util.UUID;
 
-@Table(name = "confirm_token")
+@Table
 @Entity
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public class ConfirmationToken extends BaseModel {
+public class InvitationLink extends BaseModel {
 
     @Column(name = "created_date")
     private String createdDate;
@@ -35,7 +35,7 @@ public class ConfirmationToken extends BaseModel {
     @Column(name = "token")
     private String confirmationToken;
 
-    public ConfirmationToken(User user, int dateExpirationDay, Long idSender, TypeWayInvited invited) {
+    public InvitationLink(User user, int dateExpirationDay, Long idSender, TypeWayInvited invited) {
         createdDate = dateCreated();
         finishDate = finishData(dateExpirationDay);
         this.user = user;

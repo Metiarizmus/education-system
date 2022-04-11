@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class InviteRequestToken {
+public class InviteRequest {
 
     private String email;
     private String telephoneNumber;
@@ -17,5 +17,7 @@ public class InviteRequestToken {
     private TypeRoles role;
     private Integer expirationDateCount;
     private TypeWayInvited typeWayInvited;
+    private String botToken;
+    private Integer chatId;
 
 }

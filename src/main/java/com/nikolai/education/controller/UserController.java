@@ -5,7 +5,7 @@ import com.nikolai.education.dto.OrgDTO;
 import com.nikolai.education.dto.TaskDTO;
 import com.nikolai.education.enums.TypeRoles;
 import com.nikolai.education.mail.SendMessages;
-import com.nikolai.education.model.ConfirmationToken;
+import com.nikolai.education.model.InvitationLink;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.User;
@@ -76,7 +76,7 @@ public class UserController {
     @GetMapping("/accept-course")
     public ResponseEntity<?> acceptCourse(@RequestParam("confirmToken") String confToken) {
 
-        ConfirmationToken token = tokenRepo.findByConfirmationToken(confToken);
+        InvitationLink token = tokenRepo.findByConfirmationToken(confToken);
 
         if (!sendMessages.validLink(token.getFinishDate())) {
             return ResponseEntity.badRequest().body("Error: Link not valid!");

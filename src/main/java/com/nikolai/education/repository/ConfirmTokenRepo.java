@@ -1,10 +1,10 @@
 package com.nikolai.education.repository;
 
-import com.nikolai.education.model.ConfirmationToken;
+import com.nikolai.education.model.InvitationLink;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ConfirmTokenRepo extends JpaRepository<ConfirmationToken, Long> {
+public interface ConfirmTokenRepo extends JpaRepository<InvitationLink, Long> {
 
-    ConfirmationToken findByConfirmationToken(String token);
+    InvitationLink findByConfirmationToken(String token);
 
 }

@@ -73,7 +73,7 @@ public class CourseService {
 
         log.info("get all courses for {} {}", typeRoles, user.getEmail());
 
-        return cacheManager.cached(key, courseDTOS);
+        return cacheManager.cachedList(key, courseDTOS);
     }
 
     @Cacheable(value = "Course", key = "#id")

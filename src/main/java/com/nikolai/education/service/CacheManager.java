@@ -1,6 +1,5 @@
 package com.nikolai.education.service;
 
-import com.nikolai.education.dto.UserDTO;
 import com.nikolai.education.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
@@ -14,16 +13,31 @@ public class CacheManager<E> {
 
     private final RedisService redisService;
 
-    public List<E> cached(String key, List<E> dtos) {
+    public List<E> cachedList(String key, List<E> dtos) {
 
         if (redisService.hasKey(key) == false) {
             redisService.lPushAll(key, ArrayUtils.toArray(dtos));
-            System.out.println("no cache");
             return dtos;
         }
-        System.out.println("yes cache");
         List<E> cachedLogs = (List<E>) redisService.lRange(key, 0, redisService.lSize(key));
         return cachedLogs;
+    }
+
+    public E cachedObject(String key, E obj) {
+        if (redisService.hasKey(key) == false) {
+            redisService.lPush(key, obj);
+            return obj;
+        }
+        E cachedObject = (E) redisService.lRange(key, 0, redisService.lSize(key));
+        return cachedObject;
+    }
+
+    public E getByKey(String key) {
+        return (E) redisService.get(key);
+    }
+
+    public void deleteFromCache(String key) {
+        redisService.del(key);
     }
 
 }

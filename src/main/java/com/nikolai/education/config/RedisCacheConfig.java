@@ -15,13 +15,14 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
 import java.time.Duration;
 
 @Configuration
 public class RedisCacheConfig extends CachingConfigurerSupport {
 
-    public static final String REDIS_KEY_DATABASE = "mall";
     public static final Integer expirationCacheHour = 3;
+
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisSerializer<Object> serializer = redisSerializer();
