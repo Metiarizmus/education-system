@@ -2,8 +2,8 @@ package com.nikolai.education.controller;
 
 import com.nikolai.education.dto.CourseDTO;
 import com.nikolai.education.dto.TaskDTO;
-import com.nikolai.education.enums.TypeRoles;
-import com.nikolai.education.enums.TypeWayInvited;
+import com.nikolai.education.enums.TypeRolesEnum;
+import com.nikolai.education.enums.TypeWayInvitedEnum;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Task;
@@ -12,7 +12,8 @@ import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.TaskService;
-import com.nikolai.education.service.UserServiceImpl;
+import com.nikolai.education.service.UserService;
+import com.nikolai.education.util.ConvertDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @PreAuthorize("hasAuthority('ROLE_MANAGER')")
@@ -35,8 +37,9 @@ public class ManagerController {
     private final CourseService courseService;
     private final TaskService taskService;
     private final SendMessages sendMessages;
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final UserRepo userRepo;
+    private final ConvertDto convertDto;
 
     @Operation(
             summary = "Create course for a particular organization"
@@ -46,9 +49,9 @@ public class ManagerController {
 
         Course course = new Course(courseRequest.getName(), courseRequest.getDescription(), courseRequest.getPlan());
         User user = userRepo.findByEmail(principal.getName());
-        CourseDTO courseDTO = courseService.createCourse(course, user);
+        Course createdCourse = courseService.createCourse(course, user);
 
-        return new ResponseEntity<>(courseDTO, HttpStatus.OK);
+        return new ResponseEntity<>(convertDto.convertCourse(createdCourse), HttpStatus.OK);
     }
 
     @Operation(
@@ -57,7 +60,9 @@ public class ManagerController {
     @GetMapping("/courses")
     public ResponseEntity<List<?>> listCourses(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
-        return new ResponseEntity<>(courseService.getAllCourses(user, TypeRoles.ROLE_MANAGER), HttpStatus.OK);
+        List<Course> list = courseService.getAllCourses(user, TypeRolesEnum.ROLE_MANAGER);
+        List<CourseDTO> courseDTOS = list.stream().map(convertDto::convertCourse).collect(Collectors.toList());
+        return new ResponseEntity<>(courseDTOS, HttpStatus.OK);
     }
 
     @Operation(
@@ -65,11 +70,7 @@ public class ManagerController {
     )
     @GetMapping("/courses/{id}")
     public ResponseEntity<?> coursesById(@PathVariable("id") Long id) {
-        CourseDTO courseDTO = courseService.getCourseById(id);
-        if (courseDTO != null) {
-            return new ResponseEntity<>(courseDTO, HttpStatus.OK);
-        }
-        return new ResponseEntity<>("It course dont exist", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(convertDto.convertCourse(courseService.getCourseById(id)), HttpStatus.OK);
     }
 
     @Operation(
@@ -78,8 +79,9 @@ public class ManagerController {
     @PostMapping("courses/{id}/create-task")
     public ResponseEntity<?> createTask(@Valid @RequestBody TaskDTO taskRequest, @PathVariable("id") Long idCourse) {
 
-        Task task = new Task(taskRequest.getName(), taskRequest.getContent(), taskRequest.getDescription());
-        TaskDTO taskDTO = taskService.createTask(task, idCourse, taskRequest.getExpirationCountHours());
+        Task task = new Task(taskRequest.getName(), taskRequest.getText(), taskRequest.getDescription());
+        Task createdTask = taskService.createTask(task, idCourse, taskRequest.getExpirationCountHours());
+        TaskDTO taskDTO = convertDto.convertTask(createdTask);
         return new ResponseEntity<>(taskDTO, HttpStatus.OK);
     }
 
@@ -93,10 +95,10 @@ public class ManagerController {
         String emailSubject = "Invitation to join to the organization on course";
         String content = "Manager invite you to the course ";
 
-        if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.MAIL)) {
+        if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.MAIL)) {
             sendMessages.sendInvite(inviteRequest, emailSubject, content, principal, idCourse);
             return new ResponseEntity<>("The invitation has been sent " + inviteRequest.getEmail(), HttpStatus.OK);
-        } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.TELEGRAM)) {
+        } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.TELEGRAM)) {
             sendMessages.sendInvite(inviteRequest, null, content, principal, idCourse);
         }
 

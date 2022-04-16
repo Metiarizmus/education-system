@@ -1,5 +1,5 @@
 package com.nikolai.education.enums;
 
-public enum TypeWayInvited {
+public enum TypeWayInvitedEnum {
     MAIL, TELEGRAM
 }

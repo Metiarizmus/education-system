@@ -1,8 +1,7 @@
 package com.nikolai.education.repository;
 
-import com.nikolai.education.enums.TypeRoles;
+import com.nikolai.education.enums.TypeRolesEnum;
 import com.nikolai.education.model.Organization;
-import com.nikolai.education.model.Task;
 import com.nikolai.education.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,7 +10,7 @@ import java.util.List;
 public interface UserRepo extends JpaRepository<User, Long> {
 
     User findByEmail(String email);
-    List<User> findAllByOrgAndRoles_nameRoles(Organization organization, TypeRoles role);
+    List<User> findAllByOrgAndRoles_nameRoles(Organization organization, TypeRolesEnum role);
     boolean existsByEmail(String email);
-    User findByTasks(Task task);
+    //User findByTas(Task task);
 }

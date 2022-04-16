@@ -1,12 +1,12 @@
 package com.nikolai.education.controller;
 
-import com.nikolai.education.enums.TypeWayInvited;
+import com.nikolai.education.enums.TypeWayInvitedEnum;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.User;
 import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.OrgService;
-import com.nikolai.education.service.UserServiceImpl;
+import com.nikolai.education.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.security.Principal;
 @Tag(name = "Root admin controller", description = "points of the main admin")
 public class RootAdminController {
 
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final SendMessages sendMessages;
     private final OrgService orgService;
     private final UserRepo userRepo;
@@ -39,13 +39,13 @@ public class RootAdminController {
         String emailSubject = "Invitation to join to the organization";
         String content = "RootAdmin invite you to the course";
 
-        if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.MAIL)) {
+        if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.MAIL)) {
 
             sendMessages.sendInvite(inviteRequest, emailSubject, content, principal, null);
 
             return new ResponseEntity<>("The invitation has been sent to email " + inviteRequest.getEmail(), HttpStatus.OK);
 
-        } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.TELEGRAM)) {
+        } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.TELEGRAM)) {
              sendMessages.sendInvite(inviteRequest, null, content, principal, null);
         }
 

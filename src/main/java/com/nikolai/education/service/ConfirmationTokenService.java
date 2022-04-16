@@ -1,6 +1,6 @@
 package com.nikolai.education.service;
 
-import com.nikolai.education.enums.TypeRoles;
+import com.nikolai.education.enums.TypeRolesEnum;
 import com.nikolai.education.model.InvitationLink;
 import com.nikolai.education.model.Role;
 import com.nikolai.education.repository.ConfirmTokenRepo;
@@ -17,10 +17,10 @@ import java.util.Collections;
 public class ConfirmationTokenService {
 
     private final ConfirmTokenRepo linkObjectRepo;
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final UserRepo userRepo;
 
-    public void saveConfirmToken(InvitationLink confirmationToken, TypeRoles typeRoles) {
+    public void saveConfirmToken(InvitationLink confirmationToken, TypeRolesEnum typeRoles) {
 
         if (!userRepo.existsByEmail(confirmationToken.getUser().getEmail())) {
             confirmationToken.getUser().setRoles(Collections.singleton(new Role(typeRoles)));

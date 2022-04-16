@@ -1,7 +1,7 @@
 package com.nikolai.education.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nikolai.education.enums.TypeRoles;
+import com.nikolai.education.enums.TypeRolesEnum;
 import lombok.*;
 
 import javax.persistence.*;
@@ -22,13 +22,13 @@ public class Role implements Serializable {
 
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
-    private TypeRoles nameRoles;
+    private TypeRolesEnum nameRoles;
 
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<User> users;
 
-    public Role(TypeRoles nameRoles) {
+    public Role(TypeRolesEnum nameRoles) {
         this.nameRoles = nameRoles;
     }
 

@@ -2,11 +2,11 @@ package com.nikolai.education.controller;
 
 import com.nikolai.education.dto.CourseDTO;
 import com.nikolai.education.dto.OrgDTO;
-import com.nikolai.education.dto.TaskDTO;
-import com.nikolai.education.enums.TypeRoles;
+import com.nikolai.education.enums.ProgressTaskEnum;
+import com.nikolai.education.enums.TypeRolesEnum;
 import com.nikolai.education.mail.SendMessages;
-import com.nikolai.education.model.InvitationLink;
 import com.nikolai.education.model.Course;
+import com.nikolai.education.model.InvitationLink;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.User;
 import com.nikolai.education.repository.ConfirmTokenRepo;
@@ -14,6 +14,7 @@ import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.OrgService;
 import com.nikolai.education.service.TaskService;
+import com.nikolai.education.util.ConvertDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,6 +41,7 @@ public class UserController {
     private final ConfirmTokenRepo tokenRepo;
     private final TaskService taskService;
     private final UserRepo userRepo;
+    private final ConvertDto convertDto;
 
     @Operation(
             summary = "Create a organization"
@@ -47,9 +50,9 @@ public class UserController {
     public ResponseEntity<?> createOrg(@Valid @RequestBody OrgDTO orgRequest, Principal principal) {
         Organization organization = new Organization(orgRequest.getName(), orgRequest.getDescription(), orgRequest.getStatus());
         User user = userRepo.findByEmail(principal.getName());
-        OrgDTO org = orgService.createOrg(organization, user);
+        orgService.createOrg(organization, user);
+        return new ResponseEntity<>("Organization was created successfully", HttpStatus.OK);
 
-        return new ResponseEntity<>(org, HttpStatus.OK);
     }
 
     @Operation(
@@ -58,7 +61,9 @@ public class UserController {
     @GetMapping("/courses")
     public ResponseEntity<List<?>> getCourses(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
-        return new ResponseEntity<>(courseService.getAllCourses(user, TypeRoles.ROLE_USER), HttpStatus.OK);
+        List<Course> list = courseService.getAllCourses(user, TypeRolesEnum.ROLE_USER);
+        List<CourseDTO> courseDTOS = list.stream().map(convertDto::convertCourse).collect(Collectors.toList());
+        return new ResponseEntity<>(courseDTOS, HttpStatus.OK);
     }
 
     @Operation(
@@ -66,7 +71,7 @@ public class UserController {
     )
     @GetMapping("/courses/{id}")
     public ResponseEntity<CourseDTO> getCourse(@PathVariable Long id) {
-        return new ResponseEntity<>(courseService.getCourseById(id), HttpStatus.OK);
+        return new ResponseEntity<>(convertDto.convertCourse(courseService.getCourseById(id)), HttpStatus.OK);
     }
 
 
@@ -89,36 +94,38 @@ public class UserController {
     }
 
     @GetMapping("/start-courses/{id}")
-    public ResponseEntity<TaskDTO> startCourse(@PathVariable Long id, Principal principal) {
+    public ResponseEntity<?> startCourse(@PathVariable Long id, Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
-        TaskDTO taskDTO = courseService.startCourse(id, user);
-
-        return new ResponseEntity<>(taskDTO, HttpStatus.OK);
+        return new ResponseEntity<>(convertDto.convertTask(courseService.startCourse(id, user)), HttpStatus.OK);
     }
 
-    @GetMapping("start-tasks/{id}")
-    public ResponseEntity<?> startTask(@PathVariable Long id) {
-        taskService.startTask(id);
-        return new ResponseEntity<>("You have started the task", HttpStatus.OK);
+
+    @GetMapping("/change-status-task/{id}")
+    public ResponseEntity<?> changeStatusTask(@PathVariable Long id, @RequestParam("status") ProgressTaskEnum progressTaskEnum) {
+        taskService.changeStatusTask(id, progressTaskEnum);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("finish-tasks/{id}")
-    public ResponseEntity<?> finishTask(@PathVariable Long id) {
-        taskService.finishTask(id);
-        return new ResponseEntity<>("You have started the task", HttpStatus.OK);
-    }
 
     @Operation(
             summary = "Get all public organizations in the system"
     )
     @GetMapping("/public-orgs")
-    public List<OrgDTO> findAllPublicOrgs() {
-        return orgService.findAllPublicOrg();
+    public ResponseEntity<?> findAllPublicOrgs() {
+        List<Organization> list = orgService.getAllPublicOrg();
+
+        List<OrgDTO> orgDTOS = list.stream().map(convertDto::convertOrg).collect(Collectors.toList());
+
+        if (list.isEmpty()) {
+            return new ResponseEntity<>("Not have public organizations", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(orgDTOS, HttpStatus.OK);
+
     }
 
     @GetMapping("/public-orgs/{id}")
     public OrgDTO findPublicOrgById(@PathVariable Long id) {
-        return orgService.findOrgById(id);
+        return convertDto.convertOrg(orgService.getOrgById(id));
     }
 
     @Operation(

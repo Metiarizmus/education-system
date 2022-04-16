@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
@@ -49,10 +50,10 @@ public class User extends BaseModel implements Serializable {
     @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
     private Set<Course> courses;
 
-    @OneToMany(mappedBy = "user")
-    private Set<Task> tasks;
-
     private boolean isEnable = false;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<TaskProgress> progressTasks;
 
     public User(String firstName, String lastName, String email, String password, String phoneNumber) {
         this.firstName = firstName;
@@ -71,17 +72,10 @@ public class User extends BaseModel implements Serializable {
     public Set<Role> getRoles() {
         return roles;
     }
+
     @JsonIgnore
     public Set<Organization> getOrg() {
         return org;
-    }
-    @JsonIgnore
-    public Set<Course> getCourses() {
-        return courses;
-    }
-    @JsonIgnore
-    public Set<Task> getTasks() {
-        return tasks;
     }
 
     @Override

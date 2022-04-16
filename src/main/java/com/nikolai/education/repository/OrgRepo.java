@@ -1,6 +1,6 @@
 package com.nikolai.education.repository;
 
-import com.nikolai.education.enums.StatusOrg;
+import com.nikolai.education.enums.StatusOrgEnum;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,9 +11,8 @@ import java.util.List;
 @Repository
 public interface OrgRepo extends JpaRepository<Organization, Long> {
 
-    Organization findByUsers_email(String email);
     Organization findByUsers(User user);
     Organization findByUsers_id(Long id);
-    List<Organization> findByStatus(StatusOrg statusOrg);
+    List<Organization> findByStatus(StatusOrgEnum statusOrgEnum);
 
 }

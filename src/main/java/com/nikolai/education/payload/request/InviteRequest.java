@@ -1,7 +1,7 @@
 package com.nikolai.education.payload.request;
 
-import com.nikolai.education.enums.TypeRoles;
-import com.nikolai.education.enums.TypeWayInvited;
+import com.nikolai.education.enums.TypeRolesEnum;
+import com.nikolai.education.enums.TypeWayInvitedEnum;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -14,9 +14,9 @@ public class InviteRequest {
     private String telephoneNumber;
     @NotNull
     @NotBlank(message = "Please enter type invite(ADMIN, MANAGER, USER)")
-    private TypeRoles role;
+    private TypeRolesEnum role;
     private Integer expirationDateCount;
-    private TypeWayInvited typeWayInvited;
+    private TypeWayInvitedEnum typeWayInvited;
     private String botToken;
     private Integer chatId;
 

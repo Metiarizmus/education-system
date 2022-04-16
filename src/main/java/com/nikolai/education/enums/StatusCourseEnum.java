@@ -1,5 +1,5 @@
 package com.nikolai.education.enums;
 
-public enum ProgressTask {
+public enum StatusCourseEnum {
     IN_PROGRESS, DONE, NOT_START
 }

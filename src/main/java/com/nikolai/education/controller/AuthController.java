@@ -1,7 +1,7 @@
 package com.nikolai.education.controller;
 
 import com.nikolai.education.dto.UserDTO;
-import com.nikolai.education.enums.TypeRoles;
+import com.nikolai.education.enums.TypeRolesEnum;
 import com.nikolai.education.exception.TokenRefreshException;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.InvitationLink;
@@ -17,7 +17,7 @@ import com.nikolai.education.security.CustomUserDetails;
 import com.nikolai.education.security.jwt.JwtUtils;
 import com.nikolai.education.service.CacheManager;
 import com.nikolai.education.service.RefreshTokenService;
-import com.nikolai.education.service.UserServiceImpl;
+import com.nikolai.education.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class AuthController {
 
     private final UserRepo userRepo;
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final SendMessages sendMessages;
     private final ConfirmTokenRepo tokenRepo;
     private final CacheManager<JwtResponse> cacheManager;
@@ -65,7 +65,7 @@ public class AuthController {
         User user = new User(signupRequest.getFirstName(), signupRequest.getLastName(),
                 signupRequest.getEmail(), signupRequest.getPassword(), signupRequest.getPhoneNumber());
 
-        user.setRoles(Collections.singleton(new Role(TypeRoles.ROLE_USER)));
+        user.setRoles(Collections.singleton(new Role(TypeRolesEnum.ROLE_USER)));
         userService.saveUser(user);
 
         log.info("user {} registering to the system", user.getEmail());
@@ -105,6 +105,9 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully!");
     }
 
+    @Operation(
+            summary = "Login to the system"
+    )
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody UserDTO loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
@@ -121,6 +124,9 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(jwt, refreshToken.getToken(), authentication.getName(), roles));
     }
 
+    @Operation(
+            summary = "Get new access token by refresh token"
+    )
     @PostMapping("/refreshtoken")
     public ResponseEntity<?> refreshtoken(@Valid @RequestBody RefreshTokenRequest request) {
         String requestRefreshToken = request.getRefreshToken();

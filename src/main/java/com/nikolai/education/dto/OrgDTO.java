@@ -1,6 +1,6 @@
 package com.nikolai.education.dto;
 
-import com.nikolai.education.enums.StatusOrg;
+import com.nikolai.education.enums.StatusOrgEnum;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.User;
 import lombok.AllArgsConstructor;
@@ -18,6 +18,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class OrgDTO {
 
+    private Long id;
     @NotNull
     @NotBlank(message = "Please enter name organization")
     private String name;
@@ -26,8 +27,7 @@ public class OrgDTO {
     private String description;
     @NotNull
     @NotBlank(message = "Please enter status organization(private or public)")
-    private StatusOrg status;
+    private StatusOrgEnum status;
     private Set<User> users;
     private Set<Course> courses;
-
 }

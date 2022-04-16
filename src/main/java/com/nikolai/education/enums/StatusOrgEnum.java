@@ -1,5 +1,5 @@
 package com.nikolai.education.enums;
 
-public enum StatusOrg {
+public enum StatusOrgEnum {
     PUBLIC, PRIVATE
 }

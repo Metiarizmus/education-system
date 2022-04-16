@@ -1,6 +1,6 @@
 package com.nikolai.education.dto;
 
-import com.nikolai.education.enums.ProgressTask;
+import com.nikolai.education.enums.ProgressTaskEnum;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -10,13 +10,13 @@ public class TaskDTO {
     @NotNull
     private String name;
     @NotNull
-    private String content;
+    private String text;
     @NotNull
     private String description;
     private String dateCreated;
     private String dateStart;
     private String dateFinish;
-    private ProgressTask progress;
+    private ProgressTaskEnum progress;
     @NotNull
     private Integer expirationCountHours;
 

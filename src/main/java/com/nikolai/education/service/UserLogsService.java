@@ -15,7 +15,7 @@ import java.util.List;
 public class UserLogsService {
     private final UserLogsRepo userLogsRepo;
     private final OrgRepo orgRepo;
-    private final CacheManager cacheManager;
+    private final CacheManager<Logs> cacheManager;
 
     public List<?> findAll(User user) {
         String key = "list:logs";

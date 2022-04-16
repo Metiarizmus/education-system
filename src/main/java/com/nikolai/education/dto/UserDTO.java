@@ -34,11 +34,14 @@ public class UserDTO implements Serializable {
             + "|^(\\+\\d{1,3}( )?)?(\\d{3}[ ]?)(\\d{2}[ ]?){2}\\d{2}$", message = "please enter your correct phone number")
     private String phoneNumber;
 
-    private String dateRegistr;
-    private Set<Role> roles;
-
     @NotNull
     @NotBlank(message="Please enter your password")
     @Size(min = 4)
     private String password;
+
+
+    private String dateRegistr;
+    private Set<Role> roles;
+
+
 }

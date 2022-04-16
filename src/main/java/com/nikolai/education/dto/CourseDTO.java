@@ -1,5 +1,6 @@
 package com.nikolai.education.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.List;
@@ -11,6 +12,7 @@ public class CourseDTO {
     private String description;
     private String dateCreat;
     private String plan;
+    @JsonIgnore
     private Set<TaskDTO> tasks;
     //private String dateExpirationDay;
 

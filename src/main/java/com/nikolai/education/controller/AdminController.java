@@ -1,15 +1,18 @@
 package com.nikolai.education.controller;
 
+import com.nikolai.education.dto.CourseDTO;
 import com.nikolai.education.dto.UserDTO;
-import com.nikolai.education.enums.TypeRoles;
-import com.nikolai.education.enums.TypeWayInvited;
+import com.nikolai.education.enums.TypeRolesEnum;
+import com.nikolai.education.enums.TypeWayInvitedEnum;
 import com.nikolai.education.mail.SendMessages;
+import com.nikolai.education.model.Course;
 import com.nikolai.education.model.User;
 import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.CourseService;
 import com.nikolai.education.service.UserLogsService;
-import com.nikolai.education.service.UserServiceImpl;
+import com.nikolai.education.service.UserService;
+import com.nikolai.education.util.ConvertDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -29,10 +33,11 @@ import java.util.List;
 public class AdminController {
 
     private final CourseService courseService;
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final SendMessages sendMessages;
     private final UserLogsService logsService;
     private final UserRepo userRepo;
+    private final ConvertDto convertDto;
 
     @Operation(
             summary = "Get list of courses in the organization"
@@ -40,7 +45,9 @@ public class AdminController {
     @GetMapping("/courses")
     public ResponseEntity<List<?>> getAllCourses(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
-        return new ResponseEntity<>(courseService.getAllCourses(user, TypeRoles.ROLE_ADMIN), HttpStatus.OK);
+        List<Course> list = courseService.getAllCourses(user, TypeRolesEnum.ROLE_ADMIN);
+        List<CourseDTO> courseDTOS = list.stream().map(convertDto::convertCourse).collect(Collectors.toList());
+        return new ResponseEntity<>(courseDTOS, HttpStatus.OK);
     }
 
     @Operation(
@@ -49,7 +56,10 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<List<?>> getAllUsers(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
-        return new ResponseEntity<>(userService.getAllUsersInOrg(user, TypeRoles.ROLE_USER), HttpStatus.OK);
+        List<User> list = userService.getAllUsersInOrg(user, TypeRolesEnum.ROLE_USER);
+
+        List<UserDTO> dtos = list.stream().map(convertDto::convertUser).collect(Collectors.toList());
+        return new ResponseEntity<>(dtos, HttpStatus.OK);
     }
 
 
@@ -59,12 +69,16 @@ public class AdminController {
     @GetMapping("/managers")
     public ResponseEntity<List<?>> getAllManager(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
-        return new ResponseEntity<>(userService.getAllUsersInOrg(user, TypeRoles.ROLE_MANAGER), HttpStatus.OK);
+        List<User> list = userService.getAllUsersInOrg(user, TypeRolesEnum.ROLE_MANAGER);
+
+        List<UserDTO> dtos = list.stream().map(convertDto::convertUser).collect(Collectors.toList());
+        return new ResponseEntity<>(dtos, HttpStatus.OK);
     }
 
     @GetMapping("/users/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        return new ResponseEntity<>(userService.getById(id), HttpStatus.OK);
+        UserDTO userDTO = convertDto.convertUser(userService.getById(id));
+        return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
 
     @Operation(
@@ -77,10 +91,10 @@ public class AdminController {
         String emailSubject = "Invitation to join to the organization";
         String content = "Admin invite you to the organization ";
 
-        if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.MAIL)) {
+        if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.MAIL)) {
             sendMessages.sendInvite(inviteRequest, emailSubject, content, principal, null);
             return new ResponseEntity<>("The invitation has been sent to email " + inviteRequest.getEmail(), HttpStatus.OK);
-        } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvited.TELEGRAM)) {
+        } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.TELEGRAM)) {
             sendMessages.sendInvite(inviteRequest, null, content, principal, null);
         }
 

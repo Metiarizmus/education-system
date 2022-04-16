@@ -1,11 +1,11 @@
 package com.nikolai.education.model;
 
-import com.nikolai.education.enums.ProgressTask;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "tasks")
@@ -32,19 +32,13 @@ public class Task extends BaseModel {
     @Column(name = "date_finish")
     private String dateFinish;
 
-    @ManyToOne()
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
-
-    @Column(name = "progress")
-    @Enumerated(EnumType.STRING)
-    private ProgressTask progress;
-
     private Integer expirationCountHours;
 
-    @ManyToOne()
-    @JoinColumn(name = "users_id")
-    private User user;
+    @ManyToMany(mappedBy = "tasks", fetch = FetchType.EAGER)
+    private Set<Course> courses;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    private Set<TaskProgress> progressTasks;
 
     public Task() {
 

@@ -1,7 +1,7 @@
 package com.nikolai.education.config;
 
 import com.nikolai.education.security.jwt.AuthTokenFilter;
-import com.nikolai.education.service.UserServiceImpl;
+import com.nikolai.education.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private UserServiceImpl userDetailsService;
+    private UserService userDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {

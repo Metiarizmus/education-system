@@ -1,7 +1,8 @@
 package com.nikolai.education.mail;
 
-import com.nikolai.education.enums.TypeWayInvited;
-import com.nikolai.education.enums.UserLogs;
+import com.nikolai.education.enums.TypeRolesEnum;
+import com.nikolai.education.enums.TypeWayInvitedEnum;
+import com.nikolai.education.enums.UserLogsEnum;
 import com.nikolai.education.model.InvitationLink;
 import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.Role;
@@ -43,11 +44,14 @@ public class SendMessages {
 
         User user;
         boolean isExists = userRepo.existsByEmail(recipient.getEmail());
+        System.out.println("isExist :: " + isExists);
         if (isExists) {
             user = userRepo.findByEmail(recipient.getEmail());
         } else {
             user = new User();
-            user.setRoles(Collections.singleton(new Role(recipient.getRole())));
+            if (recipient.getRole() != null) {
+                user.setRoles(Collections.singleton(new Role(recipient.getRole())));
+            }else  user.setRoles(Collections.singleton(new Role(TypeRolesEnum.ROLE_USER)));
             user.setEmail(recipient.getEmail());
             user.setPhoneNumber(recipient.getTelephoneNumber());
         }
@@ -65,14 +69,14 @@ public class SendMessages {
             link = String.format(REGISTR_LINK, confirmationToken.getConfirmationToken());
         }
 
-        if (recipient.getTypeWayInvited().equals(TypeWayInvited.MAIL)) {
+        if (recipient.getTypeWayInvited().equals(TypeWayInvitedEnum.MAIL)) {
             link = "<a href=" + link + ">click</a>";
             sendMessageToEmail(sender.getEmail(), recipient.getEmail(), emailSubject, content, link);
         } else {
             sendMessageToTelegram(recipient.getBotToken(), recipient.getChatId(), content + " " + link);
         }
         log.info("send invite link {} in the org :: ", link);
-        Logs logs = new Logs(UserLogs.INVITE, user);
+        Logs logs = new Logs(UserLogsEnum.INVITE, user);
         userLogsRepo.save(logs);
 
     }

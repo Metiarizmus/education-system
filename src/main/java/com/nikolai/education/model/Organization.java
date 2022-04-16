@@ -1,7 +1,7 @@
 package com.nikolai.education.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nikolai.education.enums.StatusOrg;
+import com.nikolai.education.enums.StatusOrgEnum;
 import lombok.*;
 
 import javax.persistence.*;
@@ -11,7 +11,6 @@ import java.util.Set;
 @Table(name = "organizations")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class Organization extends BaseModel {
 
@@ -26,7 +25,7 @@ public class Organization extends BaseModel {
 
     @Column(name = "status")
     @Enumerated(EnumType.ORDINAL)
-    private StatusOrg status;
+    private StatusOrgEnum status;
 
     @Column(name = "date_created", nullable = false)
     private String dateCreated;
@@ -41,7 +40,11 @@ public class Organization extends BaseModel {
     @OneToMany(mappedBy = "org", cascade = CascadeType.ALL)
     private Set<Course> courses;
 
-    public Organization(String name, String description, StatusOrg status) {
+    public Organization() {
+        dateCreated = dateCreated();
+    }
+
+    public Organization(String name, String description, StatusOrgEnum status) {
         this.name = name;
         this.description = description;
         this.status = status;

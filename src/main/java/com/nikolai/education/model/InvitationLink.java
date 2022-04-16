@@ -1,6 +1,6 @@
 package com.nikolai.education.model;
 
-import com.nikolai.education.enums.TypeWayInvited;
+import com.nikolai.education.enums.TypeWayInvitedEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,12 +30,12 @@ public class InvitationLink extends BaseModel {
 
     private Long idCourse;
 
-    private TypeWayInvited typeWayInvited;
+    private TypeWayInvitedEnum typeWayInvited;
 
     @Column(name = "token")
     private String confirmationToken;
 
-    public InvitationLink(User user, int dateExpirationDay, Long idSender, TypeWayInvited invited) {
+    public InvitationLink(User user, int dateExpirationDay, Long idSender, TypeWayInvitedEnum invited) {
         createdDate = dateCreated();
         finishDate = finishData(dateExpirationDay);
         this.user = user;

@@ -28,11 +28,8 @@ public class ConvertDto {
 
     public CourseDTO convertCourse(Course course) {
         CourseDTO courseDTO = modelMapper.map(course, CourseDTO.class);
-      //  List<UserDTO> userDTOSet = course.getUsers().stream().map(this::convertUser).collect(Collectors.toList());
-       // courseDTO.setUsers(userDTOSet);
         return courseDTO;
     }
-
 
     public TaskDTO convertTask(Task task) {
         return modelMapper.map(task, TaskDTO.class);

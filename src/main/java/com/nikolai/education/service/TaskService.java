@@ -1,20 +1,18 @@
 package com.nikolai.education.service;
 
-import com.nikolai.education.dto.TaskDTO;
-import com.nikolai.education.enums.ProgressTask;
-import com.nikolai.education.enums.UserLogs;
-import com.nikolai.education.model.Course;
-import com.nikolai.education.model.Logs;
-import com.nikolai.education.model.Task;
-import com.nikolai.education.model.User;
+import com.nikolai.education.enums.ProgressTaskEnum;
+import com.nikolai.education.enums.UserLogsEnum;
+import com.nikolai.education.exception.ResourceNotFoundException;
+import com.nikolai.education.model.*;
 import com.nikolai.education.repository.CourseRepo;
-import com.nikolai.education.repository.TaskRepo;
+import com.nikolai.education.repository.TaskProgressRepo;
 import com.nikolai.education.repository.UserLogsRepo;
 import com.nikolai.education.repository.UserRepo;
-import com.nikolai.education.util.ConvertDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Optional;
 
 @Service
@@ -22,40 +20,36 @@ import java.util.Optional;
 @Slf4j
 public class TaskService {
 
-    private final ConvertDto convertDto;
-    private final TaskRepo taskRepo;
     private final CourseRepo courseRepo;
     private final UserLogsRepo userLogsRepo;
     private final UserRepo userRepo;
+    private final TaskProgressRepo taskProgressRepo;
 
-    public TaskDTO createTask(Task task, Long courseId, Integer expirationCountHours) {
+    @Transactional
+    public Task createTask(Task task, Long courseId, Integer expirationCountHours) {
         Optional<Course> course = courseRepo.findById(courseId);
-        task.setCourse(course.get());
-        task.setProgress(ProgressTask.NOT_START);
-        task.setExpirationCountHours(expirationCountHours);
-        log.info("create task for course {}", course.get().getName());
-        taskRepo.save(task);
-
-        User user = userRepo.getById(course.get().getCreatorId());
-        Logs logs = new Logs(UserLogs.CREAT_TASK, user);
-        userLogsRepo.save(logs);
-
-        return convertDto.convertTask(task);
+        if (course.isPresent()) {
+            task.setExpirationCountHours(expirationCountHours);
+            course.get().getTasks().add(task);
+            log.info("create task for course {}", course.get().getName());
+            courseRepo.save(course.get());
+            User user = userRepo.getById(course.get().getCreatorId());
+            Logs logs = new Logs(UserLogsEnum.CREAT_TASK, user);
+            userLogsRepo.save(logs);
+        } else throw new ResourceNotFoundException("Course", "id", courseId);
+        return task;
     }
 
-    public void startTask(Long taskId) {
-        Task task = taskRepo.getById(taskId);
-        task.setProgress(ProgressTask.IN_PROGRESS);
-        Logs logs = new Logs(UserLogs.STARTED_TASK, task.getUser());
-        userLogsRepo.save(logs);
-        taskRepo.save(task);
-    }
+    @Transactional
+    public void changeStatusTask(Long taskId, ProgressTaskEnum progressTaskEnum) {
+        TaskProgress taskProgress = taskProgressRepo.getByTaskId(taskId);
+        if (taskProgress != null) {
+            taskProgress.setProgressTaskEnum(progressTaskEnum);
+            Logs logs = new Logs(UserLogsEnum.CHANGE_STATUS_TASK, taskProgress.getUser());
+            userLogsRepo.save(logs);
+            taskProgressRepo.save(taskProgress);
+            log.info("Finish task with id {}", taskId);
+        }  else throw new ResourceNotFoundException("Task", "id", taskId);
 
-    public void finishTask(Long taskId) {
-        Task task = taskRepo.getById(taskId);
-        task.setProgress(ProgressTask.DONE);
-        taskRepo.save(task);
-        Logs logs = new Logs(UserLogs.FINISH_TASK, task.getUser());
-        userLogsRepo.save(logs);
     }
 }
