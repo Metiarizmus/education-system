@@ -31,7 +31,7 @@ public class CourseService {
     private final SendMessages sendMessages;
     private final WorkWithTime workWithTime;
     private final UserLogsRepo userLogsRepo;
-    private final CacheManager<Course> cacheManager;
+    private final CacheManagerService<Course> cacheManagerService;
     private final TaskProgressRepo taskProgressRepo;
 
     @Transactional
@@ -65,11 +65,10 @@ public class CourseService {
         if (TypeRolesEnum.ROLE_USER.equals(typeRoles)) {
             list = courseRepo.findAllByUsers(user);
         }
-        assert list != null;
 
         log.info("get all courses for {} {}", typeRoles, user.getEmail());
 
-        return cacheManager.cachedList(key, list);
+        return cacheManagerService.cachedList(key, list);
     }
 
     @Cacheable(value = "Course", key = "#id")
@@ -113,7 +112,7 @@ public class CourseService {
         User user = userRepo.findByEmail(emailUser);
         Optional<Course> course = courseRepo.findById(idCourse);
         if (course.isPresent()) {
-            course.get().getUsers().add(user);
+            course.get().setUsers(Collections.singleton(user));
             courseRepo.save(course.get());
 
             String mailContent = String.format("User %s accepted invitation to the course \"%s\"", emailUser, course.get().getName());
@@ -123,6 +122,7 @@ public class CourseService {
             userLogsRepo.save(logs);
 
             sendMessages.sendNotificationAccepted(sender.getEmail(), mailContent, emailSubject);
+            log.info("accepted user {} to the course {}", user.getEmail(), course.get().getName());
             return course.get();
         } else throw new ResourceNotFoundException("Course", "id", idCourse);
 
@@ -133,8 +133,8 @@ public class CourseService {
         Optional<Course> course = courseRepo.findById(idCourse);
         if (course.isPresent()) {
             courseRepo.delete(course.get());
-            Optional<User> user = userRepo.findById(course.get().getCreatorId());
-            Logs logs = new Logs(UserLogsEnum.DELETE_COURSE, user.get());
+            User user = userRepo.findById(course.get().getCreatorId()).orElseThrow();
+            Logs logs = new Logs(UserLogsEnum.DELETE_COURSE, user);
             userLogsRepo.save(logs);
             log.info("delete the course {}", course.get().getName());
         } else throw new ResourceNotFoundException("Course", "id", idCourse);

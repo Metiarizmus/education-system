@@ -45,13 +45,13 @@ public class ManagerController {
             summary = "Create course for a particular organization"
     )
     @PostMapping("/create-course")
-    public ResponseEntity<?> createCourse(@Valid @RequestBody CourseDTO courseRequest, Principal principal) {
+    public ResponseEntity<Course> createCourse(@Valid @RequestBody CourseDTO courseRequest, Principal principal) {
 
         Course course = new Course(courseRequest.getName(), courseRequest.getDescription(), courseRequest.getPlan());
         User user = userRepo.findByEmail(principal.getName());
         Course createdCourse = courseService.createCourse(course, user);
 
-        return new ResponseEntity<>(convertDto.convertCourse(createdCourse), HttpStatus.OK);
+        return new ResponseEntity<>(createdCourse, HttpStatus.OK);
     }
 
     @Operation(
@@ -96,10 +96,10 @@ public class ManagerController {
         String content = "Manager invite you to the course ";
 
         if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.MAIL)) {
-            sendMessages.sendInvite(inviteRequest, emailSubject, content, principal, idCourse);
+            sendMessages.sendInvite(inviteRequest, emailSubject, content, principal.getName(), idCourse);
             return new ResponseEntity<>("The invitation has been sent " + inviteRequest.getEmail(), HttpStatus.OK);
         } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.TELEGRAM)) {
-            sendMessages.sendInvite(inviteRequest, null, content, principal, idCourse);
+            sendMessages.sendInvite(inviteRequest, null, content, principal.getName(), idCourse);
         }
 
         return new ResponseEntity<>("The invitation has been sent to telegram " + inviteRequest.getTelephoneNumber(), HttpStatus.OK);
@@ -109,23 +109,23 @@ public class ManagerController {
             summary = "Delete user from a course"
     )
     @DeleteMapping("/delete-user/{idCourse}/{idUser}")
-    public ResponseEntity<?> deleteUserFromCourse(@PathVariable("idCourse") Long idCourse,
+    public ResponseEntity<HttpStatus> deleteUserFromCourse(@PathVariable("idCourse") Long idCourse,
                                                   @PathVariable("idUser") Long idUser) {
 
         userService.deleteUserFromCourse(idCourse, idUser);
 
-        return new ResponseEntity<>("User was deleted from the course", HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @Operation(
             summary = "Delete a course"
     )
     @DeleteMapping("/delete-course/{idCourse}")
-    public ResponseEntity<?> deleteCourse(@PathVariable("idCourse") Long idCourse) {
+    public ResponseEntity<HttpStatus> deleteCourse(@PathVariable("idCourse") Long idCourse) {
 
         courseService.deleteCourse(idCourse);
 
-        return new ResponseEntity<>("Course was deleted", HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
 

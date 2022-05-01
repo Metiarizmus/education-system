@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +37,7 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder encoder;
     private final CourseRepo courseRepo;
     private final UserLogsRepo userLogsRepo;
-    private final CacheManager<User> cacheManager;
+    private final CacheManagerService<User> cacheManagerService;
 
     @Override
     @Transactional
@@ -76,12 +77,12 @@ public class UserService implements UserDetailsService {
         }
         user.setEnable(true);
         Organization org = orgRepo.findByUsers_id(senderId);
-        org.getUsers().add(user);
+        org.setUsers(Collections.singleton(user));
 
         if (courseId != null) {
             Optional<Course> course = courseRepo.findById(courseId);
             if (course.isPresent()) {
-                course.get().getUsers().add(user);
+                course.get().setUsers(Collections.singleton(user));
                 courseRepo.save(course.get());
                 log.info("add course to user when he was invited");
             }
@@ -114,37 +115,41 @@ public class UserService implements UserDetailsService {
             list.removeIf(q -> q.getRoles().size() >= 2);
         }
 
-        return cacheManager.cachedList(key, list);
-
+        return cacheManagerService.cachedList(key, list);
     }
 
     @Transactional
     public void deleteUserFromCourse(Long idCourse, Long idUser) {
         Optional<Course> course = courseRepo.findById(idCourse);
         if (course.isPresent()) {
+
             User user = userRepo.getById(idUser);
+
             course.get().getUsers().remove(user);
+
             courseRepo.save(course.get());
 
             Logs logs = new Logs(UserLogsEnum.DELETE_USER_FROM_COURSE, user);
             userLogsRepo.save(logs);
-
-            log.info("delete user {} from course {}", user.getEmail(), course.get().getName());
-        }
+            log.info("delete user {} from a course {}", user.getEmail(), course.get().getName());
+        } else throw new ResourceNotFoundException("Course", "idCourse", idCourse);
 
     }
 
     @Transactional
     public void deleteUserFromOrg(Long idUser) {
         Organization org = orgRepo.findByUsers_id(idUser);
-        User user = userRepo.getById(idUser);
-        org.getUsers().remove(user);
-        orgRepo.save(org);
+        if (org != null) {
+            User user = userRepo.getById(idUser);
+            org.getUsers().remove(user);
+            orgRepo.save(org);
 
-        Logs logs = new Logs(UserLogsEnum.DELETE_USER_FROM_ORG, user);
-        userLogsRepo.save(logs);
+            Logs logs = new Logs(UserLogsEnum.DELETE_USER_FROM_ORG, user);
+            userLogsRepo.save(logs);
 
-        log.info("delete user {} from a org {}", user.getEmail(), org.getName());
+            log.info("delete user {} from an org {}", user.getEmail(), org.getName());
+        } else throw new ResourceNotFoundException("User", "id", idUser);
+
     }
 
 

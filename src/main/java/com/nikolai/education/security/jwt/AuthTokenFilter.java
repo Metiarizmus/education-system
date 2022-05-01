@@ -53,7 +53,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             request.setAttribute("exception", ex);
         }
 
-
         filterChain.doFilter(request, response);
     }
 

@@ -20,4 +20,5 @@ public class TaskDTO {
     @NotNull
     private Integer expirationCountHours;
 
+
 }

@@ -34,19 +34,19 @@ public class RootAdminController {
             summary = "Send invitation link for admin or manager to email"
     )
     @PostMapping("/invite")
-    public ResponseEntity<?> inviteAdminOrManagerMail(@Valid @RequestBody InviteRequest inviteRequest, Principal principal) {
+    public ResponseEntity<?> inviteUserToTheOrg(@Valid @RequestBody InviteRequest inviteRequest, Principal principal) {
 
         String emailSubject = "Invitation to join to the organization";
         String content = "RootAdmin invite you to the course";
 
         if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.MAIL)) {
 
-            sendMessages.sendInvite(inviteRequest, emailSubject, content, principal, null);
+            sendMessages.sendInvite(inviteRequest, emailSubject, content, principal.getName(), null);
 
             return new ResponseEntity<>("The invitation has been sent to email " + inviteRequest.getEmail(), HttpStatus.OK);
 
         } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.TELEGRAM)) {
-             sendMessages.sendInvite(inviteRequest, null, content, principal, null);
+             sendMessages.sendInvite(inviteRequest, null, content, principal.getName(), null);
         }
 
         return new ResponseEntity<>("The invitation has been sent to telegram " + inviteRequest.getTelephoneNumber(), HttpStatus.OK);
@@ -57,19 +57,19 @@ public class RootAdminController {
             summary = "Delete user from an organization"
     )
     @DeleteMapping("/user/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<HttpStatus> deleteUser(@PathVariable Long id) {
         userService.deleteUserFromOrg(id);
-        return new ResponseEntity<>("User was deleted", HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @Operation(
             summary = "Delete an organization"
     )
     @DeleteMapping("/delete-org")
-    public ResponseEntity<?> deleteOrg(Principal principal) {
+    public ResponseEntity<HttpStatus> deleteOrg(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
         orgService.deleteOrg(user);
-        return new ResponseEntity<>("the organization was deleted", HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
 }

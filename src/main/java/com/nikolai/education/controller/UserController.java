@@ -46,13 +46,12 @@ public class UserController {
     @Operation(
             summary = "Create a organization"
     )
-    @PostMapping("/createOrg")
-    public ResponseEntity<?> createOrg(@Valid @RequestBody OrgDTO orgRequest, Principal principal) {
+    @PostMapping("/create-org")
+    public ResponseEntity<HttpStatus> createOrg(@Valid @RequestBody OrgDTO orgRequest, Principal principal) {
         Organization organization = new Organization(orgRequest.getName(), orgRequest.getDescription(), orgRequest.getStatus());
         User user = userRepo.findByEmail(principal.getName());
         orgService.createOrg(organization, user);
-        return new ResponseEntity<>("Organization was created successfully", HttpStatus.OK);
-
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Operation(
@@ -70,7 +69,7 @@ public class UserController {
             summary = "Get course by id"
     )
     @GetMapping("/courses/{id}")
-    public ResponseEntity<CourseDTO> getCourse(@PathVariable Long id) {
+    public ResponseEntity<CourseDTO> getCourseById(@PathVariable Long id) {
         return new ResponseEntity<>(convertDto.convertCourse(courseService.getCourseById(id)), HttpStatus.OK);
     }
 
@@ -89,8 +88,8 @@ public class UserController {
 
         Course course = courseService.acceptedCourse(token.getUser().getEmail(), token.getIdCourse(), token.getIdSender());
 
-        log.info("accept course and send notification about it to sender");
-        return new ResponseEntity<>("course \"" + course.getName() + "\" was accepted to you", HttpStatus.ACCEPTED);
+        log.info("accept course and send notification about it to the sender");
+        return new ResponseEntity<>(convertDto.convertCourse(course), HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/start-courses/{id}")
@@ -114,12 +113,12 @@ public class UserController {
     public ResponseEntity<?> findAllPublicOrgs() {
         List<Organization> list = orgService.getAllPublicOrg();
 
-        List<OrgDTO> orgDTOS = list.stream().map(convertDto::convertOrg).collect(Collectors.toList());
-
-        if (list.isEmpty()) {
-            return new ResponseEntity<>("Not have public organizations", HttpStatus.BAD_REQUEST);
+        if (list == null) {
+            return new ResponseEntity<>("Not have public organizations", HttpStatus.NO_CONTENT);
+        }else {
+            List<OrgDTO> orgDTOS = list.stream().map(convertDto::convertOrg).collect(Collectors.toList());
+            return new ResponseEntity<>(orgDTOS, HttpStatus.OK);
         }
-        return new ResponseEntity<>(orgDTOS, HttpStatus.OK);
 
     }
 
@@ -132,11 +131,11 @@ public class UserController {
             summary = "Join a public organization"
     )
     @GetMapping("/join-public-orgs/{id}")
-    public ResponseEntity<?> joinPublicOrgById(@PathVariable Long id, Principal principal) {
+    public ResponseEntity<HttpStatus> joinPublicOrgById(@PathVariable Long id, Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
         orgService.joinInPublicOrg(id, user);
 
-        return new ResponseEntity<>("you join to the organization", HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

@@ -27,8 +27,7 @@ public class ConvertDto {
     }
 
     public CourseDTO convertCourse(Course course) {
-        CourseDTO courseDTO = modelMapper.map(course, CourseDTO.class);
-        return courseDTO;
+        return modelMapper.map(course, CourseDTO.class);
     }
 
     public TaskDTO convertTask(Task task) {

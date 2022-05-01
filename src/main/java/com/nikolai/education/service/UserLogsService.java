@@ -15,7 +15,7 @@ import java.util.List;
 public class UserLogsService {
     private final UserLogsRepo userLogsRepo;
     private final OrgRepo orgRepo;
-    private final CacheManager<Logs> cacheManager;
+    private final CacheManagerService<Logs> cacheManagerService;
 
     public List<?> findAll(User user) {
         String key = "list:logs";
@@ -23,6 +23,6 @@ public class UserLogsService {
         Organization org = orgRepo.findByUsers(user);
         List<Logs> list = userLogsRepo.findAllByUser_Org(org);
 
-        return cacheManager.cachedList(key, list);
+        return cacheManagerService.cachedList(key, list);
     }
 }

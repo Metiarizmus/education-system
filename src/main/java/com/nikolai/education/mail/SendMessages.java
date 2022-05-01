@@ -38,9 +38,9 @@ public class SendMessages {
     private static final String COURSE_LINK = "http://localhost:8080/api/users/accept-course?confirmToken=%s";
     private static final String REGISTR_LINK = "http://localhost:8080/api/auth/signup/invite?confirmToken=%s";
 
-    public void sendInvite(InviteRequest recipient, String emailSubject, String content, Principal principal, Long idCourse) {
+    public void sendInvite(InviteRequest recipient, String emailSubject, String content, String emailSender, Long idCourse) {
 
-        User sender = userRepo.findByEmail(principal.getName());
+        User sender = userRepo.findByEmail(emailSender);
 
         User user;
         boolean isExists = userRepo.existsByEmail(recipient.getEmail());
@@ -51,7 +51,9 @@ public class SendMessages {
             user = new User();
             if (recipient.getRole() != null) {
                 user.setRoles(Collections.singleton(new Role(recipient.getRole())));
-            }else  user.setRoles(Collections.singleton(new Role(TypeRolesEnum.ROLE_USER)));
+            }else  {
+                user.setRoles(Collections.singleton(new Role(TypeRolesEnum.ROLE_USER)));
+            }
             user.setEmail(recipient.getEmail());
             user.setPhoneNumber(recipient.getTelephoneNumber());
         }
@@ -71,16 +73,15 @@ public class SendMessages {
 
         if (recipient.getTypeWayInvited().equals(TypeWayInvitedEnum.MAIL)) {
             link = "<a href=" + link + ">click</a>";
+            log.info("send invite link {} to email in the org", link);
             sendMessageToEmail(sender.getEmail(), recipient.getEmail(), emailSubject, content, link);
         } else {
+            log.info("send invite link {} to telegram in the org", link);
             sendMessageToTelegram(recipient.getBotToken(), recipient.getChatId(), content + " " + link);
         }
-        log.info("send invite link {} in the org :: ", link);
         Logs logs = new Logs(UserLogsEnum.INVITE, user);
         userLogsRepo.save(logs);
-
     }
-
 
     @Async
     public void sendMessageToEmail(String emailSender, String emailRecipient, String emailSubject,
@@ -99,7 +100,6 @@ public class SendMessages {
         TelegramBot bot = new TelegramBot(botToken);
 
         SendMessage request = new SendMessage(chatId, message);
-
         bot.execute(request);
     }
 
@@ -130,10 +130,9 @@ public class SendMessages {
             date1 = formatter.parse(lastDate);
             date2 = formatter.parse(now);
         } catch (ParseException e) {
-            e.printStackTrace();
+            System.err.println("date parse exception");
         }
 
-        assert date1 != null;
         int res = date1.compareTo(date2);
         return res >= 0;
     }

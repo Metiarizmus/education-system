@@ -6,6 +6,7 @@ import com.nikolai.education.enums.TypeRolesEnum;
 import com.nikolai.education.enums.TypeWayInvitedEnum;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.Course;
+import com.nikolai.education.model.Logs;
 import com.nikolai.education.model.User;
 import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserRepo;
@@ -43,71 +44,65 @@ public class AdminController {
             summary = "Get list of courses in the organization"
     )
     @GetMapping("/courses")
-    public ResponseEntity<List<?>> getAllCourses(Principal principal) {
+    public List<CourseDTO> getAllCourses(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
         List<Course> list = courseService.getAllCourses(user, TypeRolesEnum.ROLE_ADMIN);
         List<CourseDTO> courseDTOS = list.stream().map(convertDto::convertCourse).collect(Collectors.toList());
-        return new ResponseEntity<>(courseDTOS, HttpStatus.OK);
+        return courseDTOS;
     }
 
     @Operation(
             summary = "Get list of users in the organization"
     )
     @GetMapping("/users")
-    public ResponseEntity<List<?>> getAllUsers(Principal principal) {
+    public List<UserDTO> getAllUsers(Principal principal, @RequestParam("type") TypeRolesEnum typeRolesEnum) {
         User user = userRepo.findByEmail(principal.getName());
-        List<User> list = userService.getAllUsersInOrg(user, TypeRolesEnum.ROLE_USER);
+
+        List<User> list = null;
+        if (TypeRolesEnum.ROLE_USER.equals(typeRolesEnum)) {
+            list = userService.getAllUsersInOrg(user, TypeRolesEnum.ROLE_USER);
+        } else if (TypeRolesEnum.ROLE_MANAGER.equals(typeRolesEnum)) {
+            list = userService.getAllUsersInOrg(user, TypeRolesEnum.ROLE_MANAGER);
+        }
 
         List<UserDTO> dtos = list.stream().map(convertDto::convertUser).collect(Collectors.toList());
-        return new ResponseEntity<>(dtos, HttpStatus.OK);
-    }
-
-
-    @Operation(
-            summary = "Get list of managers in the organization"
-    )
-    @GetMapping("/managers")
-    public ResponseEntity<List<?>> getAllManager(Principal principal) {
-        User user = userRepo.findByEmail(principal.getName());
-        List<User> list = userService.getAllUsersInOrg(user, TypeRolesEnum.ROLE_MANAGER);
-
-        List<UserDTO> dtos = list.stream().map(convertDto::convertUser).collect(Collectors.toList());
-        return new ResponseEntity<>(dtos, HttpStatus.OK);
+        return dtos;
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+    public UserDTO getUserById(@PathVariable Long id) {
         UserDTO userDTO = convertDto.convertUser(userService.getById(id));
-        return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        return userDTO;
     }
 
     @Operation(
             summary = "Invite users to the organization"
     )
     @PostMapping("/invite")
-    public ResponseEntity<?> inviteUserToOrg(@RequestBody InviteRequest inviteRequest, Principal principal) {
+    public ResponseEntity<HttpStatus> inviteUserToOrg(@RequestBody InviteRequest inviteRequest, Principal principal) {
 
 
         String emailSubject = "Invitation to join to the organization";
         String content = "Admin invite you to the organization ";
 
         if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.MAIL)) {
-            sendMessages.sendInvite(inviteRequest, emailSubject, content, principal, null);
-            return new ResponseEntity<>("The invitation has been sent to email " + inviteRequest.getEmail(), HttpStatus.OK);
+            sendMessages.sendInvite(inviteRequest, emailSubject, content, principal.getName(), null);
+            return new ResponseEntity<>(HttpStatus.OK);
         } else if (inviteRequest.getTypeWayInvited().equals(TypeWayInvitedEnum.TELEGRAM)) {
-            sendMessages.sendInvite(inviteRequest, null, content, principal, null);
+            sendMessages.sendInvite(inviteRequest, null, content, principal.getName(), null);
         }
 
-        return new ResponseEntity<>("The invitation has been sent to telegram " + inviteRequest.getTelephoneNumber(), HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Operation(
             summary = "Get users actions in the system"
     )
     @GetMapping("/logs")
-    public ResponseEntity<List<?>> getLogs(Principal principal) {
+    public List<?> getLogs(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
-        return new ResponseEntity<>(logsService.findAll(user), HttpStatus.OK);
+        List<?> list = logsService.findAll(user);
+        return list;
     }
 
 }

@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.Optional;
 
 @Service
@@ -30,7 +31,7 @@ public class TaskService {
         Optional<Course> course = courseRepo.findById(courseId);
         if (course.isPresent()) {
             task.setExpirationCountHours(expirationCountHours);
-            course.get().getTasks().add(task);
+            course.get().setTasks(Collections.singleton(task));
             log.info("create task for course {}", course.get().getName());
             courseRepo.save(course.get());
             User user = userRepo.getById(course.get().getCreatorId());

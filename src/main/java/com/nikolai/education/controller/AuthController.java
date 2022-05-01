@@ -15,7 +15,6 @@ import com.nikolai.education.repository.ConfirmTokenRepo;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.security.CustomUserDetails;
 import com.nikolai.education.security.jwt.JwtUtils;
-import com.nikolai.education.service.CacheManager;
 import com.nikolai.education.service.RefreshTokenService;
 import com.nikolai.education.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,7 +45,6 @@ public class AuthController {
     private final UserService userService;
     private final SendMessages sendMessages;
     private final ConfirmTokenRepo tokenRepo;
-    private final CacheManager<JwtResponse> cacheManager;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
     private final RefreshTokenService refreshTokenService;
@@ -114,7 +112,7 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(authentication);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(authentication.getName());
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         List<String> roles = userDetails.getAuthorities().stream()

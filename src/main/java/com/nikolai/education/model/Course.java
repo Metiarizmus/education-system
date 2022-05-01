@@ -31,6 +31,7 @@ public class Course extends BaseModel {
     @JoinColumn(name = "org_id", nullable = false)
     private Organization org;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "task_courses",
             joinColumns = {@JoinColumn(name = "courses_id", referencedColumnName = "id")},
@@ -62,4 +63,18 @@ public class Course extends BaseModel {
         dateCreat = dateCreated();
     }
 
+    @Override
+    public String toString() {
+        return "Course{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", dateCreat='" + dateCreat + '\'' +
+                ", plan='" + plan + '\'' +
+                ", org=" + org +
+                ", tasks=" + tasks +
+                ", users=" + users +
+                ", creatorId=" + creatorId +
+                ", statusCourseEnum=" + statusCourseEnum +
+                '}';
+    }
 }

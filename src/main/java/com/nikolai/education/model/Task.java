@@ -2,6 +2,7 @@ package com.nikolai.education.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -12,6 +13,7 @@ import java.util.Set;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class Task extends BaseModel {
 
     @Column(name = "name", length = 45, nullable = false)
@@ -40,14 +42,25 @@ public class Task extends BaseModel {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
     private Set<TaskProgress> progressTasks;
 
-    public Task() {
-
-    }
-
     public Task(String name, String text, String description) {
         this.name = name;
         this.text = text;
         this.description = description;
         dateCreated = dateCreated();
+    }
+
+    @Override
+    public String toString() {
+        return "Task{" +
+                "name='" + name + '\'' +
+                ", text='" + text + '\'' +
+                ", description='" + description + '\'' +
+                ", dateCreated='" + dateCreated + '\'' +
+                ", dateStart='" + dateStart + '\'' +
+                ", dateFinish='" + dateFinish + '\'' +
+                ", expirationCountHours=" + expirationCountHours +
+                ", courses=" + courses +
+                ", progressTasks=" + progressTasks +
+                '}';
     }
 }

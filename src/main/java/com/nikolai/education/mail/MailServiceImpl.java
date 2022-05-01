@@ -35,7 +35,6 @@ public class MailServiceImpl implements MailService {
             mimeMessageHelper.setText(mail.getMailContent(), true);
 
             mailSender.send(mimeMessageHelper.getMimeMessage());
-
             log.info("send message to email {}", mail.getMailTo());
 
         } catch (MessagingException e) {

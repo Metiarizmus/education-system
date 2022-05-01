@@ -2,6 +2,7 @@ package com.nikolai.education.service;
 
 import com.nikolai.education.enums.StatusOrgEnum;
 import com.nikolai.education.enums.TypeRolesEnum;
+import com.nikolai.education.exception.ResourceNotFoundException;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.Role;
 import com.nikolai.education.model.User;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -25,41 +27,49 @@ public class OrgService {
 
 
     @Transactional
-    public boolean createOrg(Organization organization, User user) {
+    public Organization createOrg(Organization organization, User user) {
 
-        user.getRoles().add(new Role(TypeRolesEnum.ROLE_ROOT_ADMIN));
+        user.setRoles(Collections.singleton(new Role(TypeRolesEnum.ROLE_ROOT_ADMIN)));
         organization.setCreatorId(user.getId());
         organization.setUsers(Collections.singleton(user));
 
         orgRepo.save(organization);
         userRepo.save(user);
 
-
-        return true;
+        return organization;
     }
 
     public List<Organization> getAllPublicOrg() {
         List<Organization> orgs = orgRepo.findByStatus(StatusOrgEnum.PUBLIC);
         if (orgs.isEmpty()) {
-            return null;
+            throw new ResourceNotFoundException("Organization", "public", StatusOrgEnum.PUBLIC);
         }
+
         return orgs;
     }
 
     public Organization getOrgById(Long idOrg) {
-        Organization org = orgRepo.findById(idOrg).orElse(null);
-        return org;
+        Optional<Organization> org = orgRepo.findById(idOrg);
+        if (org.isPresent()) {
+            return org.get();
+        } else throw new ResourceNotFoundException("Organization", "id", idOrg);
     }
 
-    public void joinInPublicOrg(Long idOrg, User user) {
-        Organization organization = orgRepo.getById(idOrg);
-        organization.getUsers().add(user);
-        orgRepo.save(organization);
+    public Organization joinInPublicOrg(Long idOrg, User user) {
+        Optional<Organization> org = orgRepo.findById(idOrg);
+        if (org.isPresent() && user != null) {
+            org.get().setUsers(Collections.singleton(user));
+            orgRepo.save(org.get());
+            return org.get();
+        } else throw new ResourceNotFoundException("Organization", "id", idOrg);
     }
 
     public void deleteOrg(User user) {
         Organization org = orgRepo.findByUsers(user);
-        orgRepo.delete(org);
+        if (org != null) {
+            orgRepo.delete(org);
+        } else throw new ResourceNotFoundException("Organization", "user", user);
+
     }
 
 }

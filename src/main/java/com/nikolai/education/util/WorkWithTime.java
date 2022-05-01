@@ -7,6 +7,7 @@ import java.util.Calendar;
 
 @Component
 public class WorkWithTime {
+
     public String dateNow() {
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");

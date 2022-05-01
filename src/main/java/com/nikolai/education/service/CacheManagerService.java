@@ -10,13 +10,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class CacheManager<E> {
+public class CacheManagerService<E> {
 
     private final RedisService redisService;
 
     public List<E> cachedList(String key, List<E> list) {
 
-        if (redisService.hasKey(key) == false) {
+        if (!redisService.hasKey(key)) {
             redisService.lPushAll(key, ArrayUtils.toArray(list));
             return list;
         }
@@ -25,7 +25,7 @@ public class CacheManager<E> {
     }
 
     public E cachedObject(String key, E obj) {
-        if (redisService.hasKey(key) == false) {
+        if (!redisService.hasKey(key)) {
             redisService.lPush(key, obj);
             return obj;
         }
