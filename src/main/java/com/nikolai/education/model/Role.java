@@ -24,7 +24,6 @@ public class Role implements Serializable {
     @Enumerated(EnumType.STRING)
     private TypeRolesEnum nameRoles;
 
-
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<User> users;
 
@@ -36,6 +35,5 @@ public class Role implements Serializable {
     public Set<User> getUsers() {
         return users;
     }
-
 
 }

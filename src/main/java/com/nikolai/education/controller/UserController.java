@@ -1,13 +1,14 @@
 package com.nikolai.education.controller;
 
 import com.nikolai.education.dto.CourseDTO;
-import com.nikolai.education.dto.OrgDTO;
+import com.nikolai.education.dto.TaskDTO;
+import com.nikolai.education.dto.UserDTO;
 import com.nikolai.education.enums.ProgressTaskEnum;
 import com.nikolai.education.enums.TypeRolesEnum;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.InvitationLink;
-import com.nikolai.education.model.Organization;
+import com.nikolai.education.model.Task;
 import com.nikolai.education.model.User;
 import com.nikolai.education.repository.ConfirmTokenRepo;
 import com.nikolai.education.repository.UserRepo;
@@ -23,7 +24,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,26 +43,25 @@ public class UserController {
     private final UserRepo userRepo;
     private final ConvertDto convertDto;
 
+
     @Operation(
-            summary = "Create a organization"
+            summary = "get user"
     )
-    @PostMapping("/create-org")
-    public ResponseEntity<HttpStatus> createOrg(@Valid @RequestBody OrgDTO orgRequest, Principal principal) {
-        Organization organization = new Organization(orgRequest.getName(), orgRequest.getDescription(), orgRequest.getStatus());
-        User user = userRepo.findByEmail(principal.getName());
-        orgService.createOrg(organization, user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    @GetMapping("/{email}")
+    public UserDTO getCurrentUser(@PathVariable String email) {
+
+        return convertDto.convertUser(userRepo.findByEmail(email));
     }
 
     @Operation(
             summary = "Get list of courses for user"
     )
     @GetMapping("/courses")
-    public ResponseEntity<List<?>> getCourses(Principal principal) {
+    public List<CourseDTO> getCourses(Principal principal) {
         User user = userRepo.findByEmail(principal.getName());
         List<Course> list = courseService.getAllCourses(user, TypeRolesEnum.ROLE_USER);
         List<CourseDTO> courseDTOS = list.stream().map(convertDto::convertCourse).collect(Collectors.toList());
-        return new ResponseEntity<>(courseDTOS, HttpStatus.OK);
+        return courseDTOS;
     }
 
     @Operation(
@@ -72,7 +71,6 @@ public class UserController {
     public ResponseEntity<CourseDTO> getCourseById(@PathVariable Long id) {
         return new ResponseEntity<>(convertDto.convertCourse(courseService.getCourseById(id)), HttpStatus.OK);
     }
-
 
     @Operation(
             summary = "Accept an invitation to the course"
@@ -92,39 +90,23 @@ public class UserController {
         return new ResponseEntity<>(convertDto.convertCourse(course), HttpStatus.ACCEPTED);
     }
 
-    @GetMapping("/start-courses/{id}")
-    public ResponseEntity<?> startCourse(@PathVariable Long id, Principal principal) {
-        User user = userRepo.findByEmail(principal.getName());
-        return new ResponseEntity<>(convertDto.convertTask(courseService.startCourse(id, user)), HttpStatus.OK);
-    }
-
-
     @GetMapping("/change-status-task/{id}")
-    public ResponseEntity<?> changeStatusTask(@PathVariable Long id, @RequestParam("status") ProgressTaskEnum progressTaskEnum) {
-        taskService.changeStatusTask(id, progressTaskEnum);
+    public ResponseEntity<?> changeStatusTask(@PathVariable Long id, @RequestParam("status") String progressTaskEnum,
+                                              Principal principal) {
+
+
+        taskService.changeStatusTask(id, ProgressTaskEnum.valueOf(progressTaskEnum), principal.getName());
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @GetMapping("/tasks/{id}")
+    public List<TaskDTO> getTasks(Principal principal,
+                                  @PathVariable Long id) {
 
-    @Operation(
-            summary = "Get all public organizations in the system"
-    )
-    @GetMapping("/public-orgs")
-    public ResponseEntity<?> findAllPublicOrgs() {
-        List<Organization> list = orgService.getAllPublicOrg();
-
-        if (list == null) {
-            return new ResponseEntity<>("Not have public organizations", HttpStatus.NO_CONTENT);
-        }else {
-            List<OrgDTO> orgDTOS = list.stream().map(convertDto::convertOrg).collect(Collectors.toList());
-            return new ResponseEntity<>(orgDTOS, HttpStatus.OK);
-        }
-
-    }
-
-    @GetMapping("/public-orgs/{id}")
-    public OrgDTO findPublicOrgById(@PathVariable Long id) {
-        return convertDto.convertOrg(orgService.getOrgById(id));
+        List<Task> list = taskService.listTaskForUser(principal.getName(), id);
+        List<TaskDTO> tasksDTOS = list.stream().map(convertDto::convertTask).collect(Collectors.toList());
+        return tasksDTOS;
     }
 
     @Operation(

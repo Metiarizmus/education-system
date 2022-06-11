@@ -29,12 +29,13 @@ public class OrgService {
     @Transactional
     public Organization createOrg(Organization organization, User user) {
 
-        user.setRoles(Collections.singleton(new Role(TypeRolesEnum.ROLE_ROOT_ADMIN)));
+        user.getRoles().add(new Role(TypeRolesEnum.ROLE_ROOT_ADMIN));
+        userRepo.save(user);
+
         organization.setCreatorId(user.getId());
         organization.setUsers(Collections.singleton(user));
 
         orgRepo.save(organization);
-        userRepo.save(user);
 
         return organization;
     }
@@ -44,7 +45,26 @@ public class OrgService {
         if (orgs.isEmpty()) {
             throw new ResourceNotFoundException("Organization", "public", StatusOrgEnum.PUBLIC);
         }
+        return orgs;
+    }
 
+    public List<Organization> getAllOrgByCreator(String email) {
+        User user = userRepo.findByEmail(email);
+        List<Organization> list = orgRepo.findByCreatorId(user.getId());
+        return list;
+    }
+
+    public List<Organization> getAllOrgByEmailAndRole(String roleName, String email) {
+
+        List<Organization> list = orgRepo.findByUserEmailAndRole(roleName, email);
+        return list;
+    }
+
+    public List<Organization> getAllPublicOrgByName(String name) {
+        List<Organization> orgs = orgRepo.findByStatusAndNameLike(StatusOrgEnum.PUBLIC, name);
+        if (orgs.isEmpty()) {
+            throw new ResourceNotFoundException("Organization", "public", StatusOrgEnum.PUBLIC);
+        }
         return orgs;
     }
 
@@ -58,7 +78,7 @@ public class OrgService {
     public Organization joinInPublicOrg(Long idOrg, User user) {
         Optional<Organization> org = orgRepo.findById(idOrg);
         if (org.isPresent() && user != null) {
-            org.get().setUsers(Collections.singleton(user));
+            org.get().getUsers().add(user);
             orgRepo.save(org.get());
             return org.get();
         } else throw new ResourceNotFoundException("Organization", "id", idOrg);

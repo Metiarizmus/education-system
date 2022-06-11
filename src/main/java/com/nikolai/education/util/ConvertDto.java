@@ -8,6 +8,7 @@ import com.nikolai.education.model.Course;
 import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.Task;
 import com.nikolai.education.model.User;
+import com.nikolai.education.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class ConvertDto {
 
     private final ModelMapper modelMapper;
+    private final UserRepo userRepo;
 
     public OrgDTO convertOrg(Organization organization) {
         return modelMapper.map(organization, OrgDTO.class);
@@ -27,10 +29,16 @@ public class ConvertDto {
     }
 
     public CourseDTO convertCourse(Course course) {
-        return modelMapper.map(course, CourseDTO.class);
+        CourseDTO c = modelMapper.map(course, CourseDTO.class);
+        if (course.getId() != null) {
+            User u = userRepo.getById(c.getCreatorId());
+            c.setManagerName(u.getFirstName() + " " + u.getLastName());
+        }
+        return c;
     }
 
     public TaskDTO convertTask(Task task) {
-        return modelMapper.map(task, TaskDTO.class);
+        TaskDTO taskDTO = modelMapper.map(task, TaskDTO.class);
+        return taskDTO;
     }
 }

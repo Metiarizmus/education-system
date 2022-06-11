@@ -30,7 +30,7 @@ public class SchedulerService {
     private final UserRepo userRepo;
 
     @SneakyThrows
-    @Scheduled(cron = "0 0 * * * * ")
+    @Scheduled(cron = "0 0 0 * * * ")
     @Async
     public void cronSendNotif() {
         String emailSubject = "Task Reminder";

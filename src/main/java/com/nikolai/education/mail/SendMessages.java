@@ -35,16 +35,15 @@ public class SendMessages {
     private final UserRepo userRepo;
     private final UserLogsRepo userLogsRepo;
 
-    private static final String COURSE_LINK = "http://localhost:8080/api/users/accept-course?confirmToken=%s";
-    private static final String REGISTR_LINK = "http://localhost:8080/api/auth/signup/invite?confirmToken=%s";
+    private static final String COURSE_LINK = "http://localhost:4200/api/users/accept-course/%s";
+    private static final String REGISTR_LINK = "http://localhost:4200/api/auth/signup/invite/%s";
 
     public void sendInvite(InviteRequest recipient, String emailSubject, String content, String emailSender, Long idCourse) {
 
         User sender = userRepo.findByEmail(emailSender);
-
+        //http://localhost:4200/api/users/accept-course/d7e51f15-13f4-4e75-8082-1e3ed3c2154f
         User user;
         boolean isExists = userRepo.existsByEmail(recipient.getEmail());
-        System.out.println("isExist :: " + isExists);
         if (isExists) {
             user = userRepo.findByEmail(recipient.getEmail());
         } else {
@@ -57,7 +56,6 @@ public class SendMessages {
             user.setEmail(recipient.getEmail());
             user.setPhoneNumber(recipient.getTelephoneNumber());
         }
-
 
         InvitationLink confirmationToken = new InvitationLink(user, recipient.getExpirationDateCount(), sender.getId(), recipient.getTypeWayInvited());
         confirmationToken.setIdCourse(idCourse);

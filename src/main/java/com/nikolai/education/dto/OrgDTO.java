@@ -1,5 +1,6 @@
 package com.nikolai.education.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.nikolai.education.enums.StatusOrgEnum;
 import com.nikolai.education.model.Course;
 import com.nikolai.education.model.User;
@@ -16,6 +17,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonSerialize
 public class OrgDTO {
 
     private Long id;
@@ -28,6 +30,10 @@ public class OrgDTO {
     @NotNull
     @NotBlank(message = "Please enter status organization(private or public)")
     private StatusOrgEnum status;
-    private Set<User> users;
-    private Set<Course> courses;
+    private Set<UserDTO> users;
+    private Set<CourseDTO> courses;
+    private byte[] avatar;
+    private String dateCreated;
+    private Long creatorId;
+
 }

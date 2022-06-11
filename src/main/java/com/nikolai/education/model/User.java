@@ -37,6 +37,9 @@ public class User extends BaseModel implements Serializable {
     @Column(name = "date_registr")
     private String dateRegistr;
 
+    @Column(name = "avatar", columnDefinition = "LONGBLOB")
+    private byte[] avatar;
+
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "users_roles",
             joinColumns = {@JoinColumn(name = "users_id", referencedColumnName = "id")},
@@ -52,8 +55,10 @@ public class User extends BaseModel implements Serializable {
 
     private boolean isEnable = false;
 
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<TaskProgress> progressTasks;
+
 
     public User(String firstName, String lastName, String email, String password, String phoneNumber) {
         this.firstName = firstName;
@@ -97,13 +102,6 @@ public class User extends BaseModel implements Serializable {
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", dateRegistr='" + dateRegistr + '\'' +
-                ", roles=" + roles +
-                ", org=" + org +
-                ", courses=" + courses +
-                ", isEnable=" + isEnable +
                 '}';
     }
 }

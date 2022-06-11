@@ -22,7 +22,6 @@ public class RefreshTokenService {
     private final CacheManagerService<RefreshToken> cacheManagerService;
 
     public Optional<RefreshToken> findByToken(String token) {
-        //return refreshTokenRepository.findByToken(token);
         return cacheManagerService.getByKey(token);
     }
 
@@ -32,7 +31,6 @@ public class RefreshTokenService {
         refreshToken.setUser(userRepository.findByEmail(email));
         refreshToken.setExpiryDate(Calendar.getInstance().getTimeInMillis() + 90000000);
         refreshToken.setToken(UUID.randomUUID().toString());
-        //refreshToken = refreshTokenRepository.save(refreshToken);
         cacheManagerService.cachedObject(refreshToken.getToken(), refreshToken);
         return refreshToken;
     }
@@ -40,7 +38,6 @@ public class RefreshTokenService {
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Calendar.getInstance().getTimeInMillis()) < 0) {
             cacheManagerService.deleteFromCache(token.getToken());
-            //refreshTokenRepository.delete(token);
             throw new TokenRefreshException(token.getToken(), "Refresh token was expired. Please make a new signin request");
         }
         return token;

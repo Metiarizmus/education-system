@@ -20,7 +20,7 @@ import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/org/root-admin")
+@RequestMapping("/api/root-admin")
 @PreAuthorize("hasAuthority('ROLE_ROOT_ADMIN')")
 @Tag(name = "Root admin controller", description = "points of the main admin")
 public class RootAdminController {

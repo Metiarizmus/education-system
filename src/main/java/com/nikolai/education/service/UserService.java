@@ -61,6 +61,10 @@ public class UserService implements UserDetailsService {
         userRepo.save(user);
     }
 
+    public boolean logout(String email) {
+        return false;
+    }
+
     @Cacheable(value = "Users", key = "#id")
     public User getById(Long id) {
 

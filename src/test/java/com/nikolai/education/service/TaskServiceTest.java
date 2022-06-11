@@ -81,17 +81,6 @@ class TaskServiceTest {
         assertThatThrownBy(() -> taskService.createTask(testTask, null, 11)).isInstanceOf(ResourceNotFoundException.class);
     }
 
-    @Test
-    void changeStatusTask() {
-        when(taskProgressRepo.getByTaskId(anyLong())).thenReturn(taskProgress);
-        taskService.changeStatusTask(1L, ProgressTaskEnum.DONE);
 
-        Mockito.verify(taskProgressRepo, Mockito.times(1)).save(taskProgress);
-    }
-
-    @Test
-    void changeStatusTaskException() {
-        assertThatThrownBy(() -> taskService.changeStatusTask(null, ProgressTaskEnum.DONE)).isInstanceOf(ResourceNotFoundException.class);
-    }
 
 }

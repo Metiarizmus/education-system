@@ -1,5 +1,7 @@
 package com.nikolai.education.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Task extends BaseModel {
 
     @Column(name = "name", length = 45, nullable = false)
@@ -36,11 +38,15 @@ public class Task extends BaseModel {
 
     private Integer expirationCountHours;
 
-    @ManyToMany(mappedBy = "tasks", fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "tasks", fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH})
     private Set<Course> courses;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
     private Set<TaskProgress> progressTasks;
+
+    public Task() {
+        dateCreated = dateCreated();
+    }
 
     public Task(String name, String text, String description) {
         this.name = name;
@@ -59,7 +65,6 @@ public class Task extends BaseModel {
                 ", dateStart='" + dateStart + '\'' +
                 ", dateFinish='" + dateFinish + '\'' +
                 ", expirationCountHours=" + expirationCountHours +
-                ", courses=" + courses +
                 ", progressTasks=" + progressTasks +
                 '}';
     }

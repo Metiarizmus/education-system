@@ -1,5 +1,6 @@
 package com.nikolai.education.service;
 
+import com.nikolai.education.dto.CourseDTO;
 import com.nikolai.education.enums.ProgressTaskEnum;
 import com.nikolai.education.enums.TypeRolesEnum;
 import com.nikolai.education.enums.UserLogsEnum;
@@ -35,13 +36,14 @@ public class CourseService {
     private final TaskProgressRepo taskProgressRepo;
 
     @Transactional
-    public Course createCourse(Course course, User user) {
+    public Course createCourse(Course course, User user, Long selectedOrg) {
 
-        Organization organization = orgRepo.findByUsers(user);
+        Optional<Organization> organization = orgRepo.findById(selectedOrg);
+        course.setOrg(organization.get());
 
-        course.setOrg(organization);
         course.setUsers(Collections.singleton(user));
         course.setCreatorId(user.getId());
+        course.setDateCreat(workWithTime.dateNow());
         courseRepo.save(course);
 
         Logs logs = new Logs(UserLogsEnum.CREATE_COURSE, user);
@@ -51,8 +53,13 @@ public class CourseService {
         return course;
     }
 
+    public Course updateCourse(Course course) {
+        log.info("update course {}", course.getName());
+        return courseRepo.save(course);
+    }
+
     public List<Course> getAllCourses(User user, TypeRolesEnum typeRoles) {
-        String key = "list:courses";
+        // String key = "list:courses";
 
         List<Course> list = null;
         if (TypeRolesEnum.ROLE_MANAGER.equals(typeRoles)) {
@@ -68,11 +75,13 @@ public class CourseService {
 
         log.info("get all courses for {} {}", typeRoles, user.getEmail());
 
-        return cacheManagerService.cachedList(key, list);
+        return list;
+        //    return cacheManagerService.cachedList(key, list);
     }
 
-    @Cacheable(value = "Course", key = "#id")
+//    @Cacheable(value = "Course", key = "#id")
     public Course getCourseById(Long id) {
+
         return courseRepo.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Course", "id", id)
         );
@@ -112,7 +121,8 @@ public class CourseService {
         User user = userRepo.findByEmail(emailUser);
         Optional<Course> course = courseRepo.findById(idCourse);
         if (course.isPresent()) {
-            course.get().setUsers(Collections.singleton(user));
+
+            course.get().getUsers().add(user);
             courseRepo.save(course.get());
 
             String mailContent = String.format("User %s accepted invitation to the course \"%s\"", emailUser, course.get().getName());
@@ -131,9 +141,10 @@ public class CourseService {
     @Transactional
     public void deleteCourse(Long idCourse) {
         Optional<Course> course = courseRepo.findById(idCourse);
+
         if (course.isPresent()) {
-            courseRepo.delete(course.get());
             User user = userRepo.findById(course.get().getCreatorId()).orElseThrow();
+            courseRepo.delete(course.get());
             Logs logs = new Logs(UserLogsEnum.DELETE_COURSE, user);
             userLogsRepo.save(logs);
             log.info("delete the course {}", course.get().getName());

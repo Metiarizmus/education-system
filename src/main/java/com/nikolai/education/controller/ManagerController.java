@@ -1,16 +1,21 @@
 package com.nikolai.education.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nikolai.education.dto.CourseDTO;
+import com.nikolai.education.dto.OrgDTO;
 import com.nikolai.education.dto.TaskDTO;
 import com.nikolai.education.enums.TypeRolesEnum;
 import com.nikolai.education.enums.TypeWayInvitedEnum;
 import com.nikolai.education.mail.SendMessages;
 import com.nikolai.education.model.Course;
+import com.nikolai.education.model.Organization;
 import com.nikolai.education.model.Task;
 import com.nikolai.education.model.User;
 import com.nikolai.education.payload.request.InviteRequest;
 import com.nikolai.education.repository.UserRepo;
 import com.nikolai.education.service.CourseService;
+import com.nikolai.education.service.OrgService;
 import com.nikolai.education.service.TaskService;
 import com.nikolai.education.service.UserService;
 import com.nikolai.education.util.ConvertDto;
@@ -22,7 +27,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,18 +44,40 @@ public class ManagerController {
     private final UserService userService;
     private final UserRepo userRepo;
     private final ConvertDto convertDto;
+    private final OrgService orgService;
+    private final ObjectMapper objectMapper;
 
     @Operation(
             summary = "Create course for a particular organization"
     )
-    @PostMapping("/create-course")
-    public ResponseEntity<Course> createCourse(@Valid @RequestBody CourseDTO courseRequest, Principal principal) {
+    @PostMapping("/create-course/{idOrg}")
+    public CourseDTO createCourse(@RequestParam("course") String courseRequest,
+                                  Principal principal,
+                                  @PathVariable("idOrg") Long idOrg) throws JsonProcessingException {
 
-        Course course = new Course(courseRequest.getName(), courseRequest.getDescription(), courseRequest.getPlan());
+        Course course = objectMapper.readValue(courseRequest, Course.class);
+
         User user = userRepo.findByEmail(principal.getName());
-        Course createdCourse = courseService.createCourse(course, user);
+        Course createdCourse = courseService.createCourse(course, user, idOrg);
 
-        return new ResponseEntity<>(createdCourse, HttpStatus.OK);
+
+        return convertDto.convertCourse(createdCourse);
+    }
+
+    private ResponseEntity<?> getResponseEntity(List<Organization> list) {
+        if (list == null) {
+            return new ResponseEntity<>("Not have public organizations", HttpStatus.NO_CONTENT);
+        } else {
+            List<OrgDTO> orgDTOS = list.stream().map(convertDto::convertOrg).collect(Collectors.toList());
+            return new ResponseEntity<>(orgDTOS, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("/orgs/{role}")
+    public ResponseEntity<?> findAllByManager(@PathVariable("role") String role, Principal principal) {
+
+        List<Organization> list = orgService.getAllOrgByEmailAndRole(role, principal.getName());
+        return getResponseEntity(list);
     }
 
     @Operation(
@@ -70,25 +96,53 @@ public class ManagerController {
     )
     @GetMapping("/courses/{id}")
     public ResponseEntity<?> coursesById(@PathVariable("id") Long id) {
+
         return new ResponseEntity<>(convertDto.convertCourse(courseService.getCourseById(id)), HttpStatus.OK);
+
+    }
+
+    @PutMapping("/update-course")
+    public ResponseEntity<Course> updateEmployee(@RequestBody Course course) {
+
+        Course updateCourse = courseService.updateCourse(course);
+
+        return new ResponseEntity<>(updateCourse, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/task/{id}")
+    public Long deleteTask(@PathVariable("id") Long id, Principal principal) {
+        taskService.deleteTask(id, principal.getName());
+        return id;
     }
 
     @Operation(
             summary = "Create task for a particular course"
     )
     @PostMapping("courses/{id}/create-task")
-    public ResponseEntity<?> createTask(@Valid @RequestBody TaskDTO taskRequest, @PathVariable("id") Long idCourse) {
+    public ResponseEntity<?> createTask(@RequestParam(name = "task") String taskJson,
+                                        @PathVariable("id") Long idCourse) throws JsonProcessingException {
 
-        Task task = new Task(taskRequest.getName(), taskRequest.getText(), taskRequest.getDescription());
-        Task createdTask = taskService.createTask(task, idCourse, taskRequest.getExpirationCountHours());
+        Task task = objectMapper.readValue(taskJson, Task.class);
+
+        Task createdTask = taskService.createTask(task, idCourse, task.getExpirationCountHours());
+
         TaskDTO taskDTO = convertDto.convertTask(createdTask);
         return new ResponseEntity<>(taskDTO, HttpStatus.OK);
+    }
+
+    @GetMapping("/status-tasks-users/{id}/{email}")
+    public List<TaskDTO> getTasks(@PathVariable("email") String email,
+                                  @PathVariable("id") Long id) {
+
+        List<Task> list = taskService.listTaskForUser(email, id);
+        List<TaskDTO> tasksDTOS = list.stream().map(convertDto::convertTask).collect(Collectors.toList());
+        return tasksDTOS;
     }
 
     @Operation(
             summary = "Send an invitation to join a course"
     )
-    @PostMapping("/invite-course/{idCourse}")
+    @PostMapping("/invite-to-course/{idCourse}")
     public ResponseEntity<?> inviteUserToCourse(@PathVariable() Long idCourse, @RequestBody InviteRequest inviteRequest,
                                                 Principal principal) {
 
@@ -110,7 +164,7 @@ public class ManagerController {
     )
     @DeleteMapping("/delete-user/{idCourse}/{idUser}")
     public ResponseEntity<HttpStatus> deleteUserFromCourse(@PathVariable("idCourse") Long idCourse,
-                                                  @PathVariable("idUser") Long idUser) {
+                                                           @PathVariable("idUser") Long idUser) {
 
         userService.deleteUserFromCourse(idCourse, idUser);
 
@@ -121,12 +175,10 @@ public class ManagerController {
             summary = "Delete a course"
     )
     @DeleteMapping("/delete-course/{idCourse}")
-    public ResponseEntity<HttpStatus> deleteCourse(@PathVariable("idCourse") Long idCourse) {
+    public Long deleteCourse(@PathVariable("idCourse") Long idCourse) {
 
         courseService.deleteCourse(idCourse);
 
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return idCourse;
     }
-
-
 }

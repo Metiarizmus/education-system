@@ -1,10 +1,12 @@
 package com.nikolai.education.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.nikolai.education.enums.StatusOrgEnum;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.Arrays;
 import java.util.Set;
 
 @Entity
@@ -17,7 +19,7 @@ public class Organization extends BaseModel {
     @Column(name = "name", length = 45, nullable = false)
     private String name;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", columnDefinition = "LONGTEXT")
     private String description;
 
     @Column(name = "creator_id", nullable = false)
@@ -25,12 +27,16 @@ public class Organization extends BaseModel {
 
     @Column(name = "status")
     @Enumerated(EnumType.ORDINAL)
+    @JsonIgnoreProperties
     private StatusOrgEnum status;
+
+    @Column(name = "avatar", columnDefinition = "LONGBLOB")
+    private byte[] avatar;
 
     @Column(name = "date_created", nullable = false)
     private String dateCreated;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade={CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinTable(name = "users_org",
             joinColumns = {@JoinColumn(name = "org_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "users_id", referencedColumnName = "id")}
@@ -59,5 +65,12 @@ public class Organization extends BaseModel {
     @JsonIgnore
     public Set<Course> getCourses() {
         return courses;
+    }
+
+    @Override
+    public String toString() {
+        return "Organization{" +
+                "name='" + name +
+                '}';
     }
 }
